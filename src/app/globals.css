@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Zona Audio · Dark Neutral + Orange Accent */
+    --bg-primary: #121212;
+    --bg-secondary: #121212;
+    --bg-card: #27272A;
+    --bg-card-hover: #303036;
+    --border-subtle: #3F3F46;
+    --border-accent: #52525B;
+    --text-primary: #FFFFFF;
+    --text-secondary: #e3deda;
+    --text-muted: #e3deda;
+
+    --accent-primary: #d47217;
+    --accent-secondary: #d47217;
+    --accent-rust: #d47217;
+    --accent-coral: #d47217;
+    --accent-cream: #FFFFFF;
+  }
+
+  .light-theme {
+    /* Soft Cream & Warm Alabaster Light Mode */
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #f3ece2;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fcf9f5;
+    --border-subtle: #e6dcce;
+    --border-accent: #d4c5b2;
+    --text-primary: #2b2d42;
+    --text-secondary: #57534e;
+    --text-muted: #8c827a;
+
+    --accent-primary: #d47217;
+    --accent-secondary: #d47217;
+    --accent-rust: #d47217;
+    --accent-coral: #d47217;
+    --accent-cream: #2b2d42;
+  }
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Zona Audio Glassmorphism & Elevation */
+.glass-panel {
+  background: rgba(39, 39, 42, 0.86);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(212, 114, 23, 0.18);
+}
+
+.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(212, 114, 23, 0.12);
+}
+
+.glass-nav {
+  background: rgba(18, 18, 18, 0.92);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(212, 114, 23, 0.14);
+}
+
+.light-theme .glass-nav {
+  background: rgba(250, 244, 237, 0.92);
+  border-bottom: 1px solid rgba(212, 114, 23, 0.12);
+}
+
+/* Orange Glow Effects */
+.glow-warm {
+  box-shadow: 0 0 28px -4px rgba(212, 114, 23, 0.4);
+}
+
+.glow-gold {
+  box-shadow: 0 0 28px -4px rgba(212, 114, 23, 0.4);
+}
+
+.glow-rust {
+  box-shadow: 0 0 28px -4px rgba(212, 114, 23, 0.45);
+}
+
+/* Audio visualizer animations */
+@keyframes barPulseWarm {
+  0%, 100% {
+    height: 4px;
+  }
+  50% {
+    height: 24px;
+  }
+}
+
+.animate-bar-1 {
+  animation: barPulseWarm 0.8s ease-in-out infinite alternate;
+}
+.animate-bar-2 {
+  animation: barPulseWarm 0.6s ease-in-out infinite 0.15s alternate;
+}
+.animate-bar-3 {
+  animation: barPulseWarm 0.9s ease-in-out infinite 0.3s alternate;
+}
+.animate-bar-4 {
+  animation: barPulseWarm 0.5s ease-in-out infinite 0.1s alternate;
+}
+.animate-bar-5 {
+  animation: barPulseWarm 0.7s ease-in-out infinite 0.25s alternate;
+}
+
+/* Custom Warm Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #121212;
+}
+.light-theme ::-webkit-scrollbar-track {
+  background: #f3ece2;
+}
+::-webkit-scrollbar-thumb {
+  background: #3F3F46;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d47217;
+}
