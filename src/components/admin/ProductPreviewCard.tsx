@@ -18,7 +18,6 @@ type ProductPreviewCardProps = {
   image: string;
   imageFit: "cover" | "contain";
   hasAudioPreview: boolean;
-  soundNotes: string;
   isPublished: boolean;
 };
 
@@ -36,7 +35,6 @@ export function ProductPreviewCard({
   image,
   imageFit,
   hasAudioPreview,
-  soundNotes,
   isPublished,
 }: ProductPreviewCardProps) {
   const visibleSpecs = specs.filter(
@@ -142,7 +140,7 @@ export function ProductPreviewCard({
               Vista previa del perfil de sonido
             </span>
             <p className="truncate text-xs font-medium text-white">
-              {soundNotes.trim() || "Descripción del perfil de sonido"}
+              Vista del perfil de sonido
             </p>
           </div>
           <span className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[#52525B] px-3.5 py-2 text-xs font-bold text-white">

@@ -52,7 +52,6 @@ type ProductFormState = {
   description: string;
   specs: SpecRow[];
   features: string;
-  soundNotes: string;
   images: string[];
   imageFit: "cover" | "contain";
   isPublished: boolean;
@@ -116,7 +115,6 @@ function emptyForm(): ProductFormState {
     description: "",
     specs: [],
     features: "",
-    soundNotes: "",
     images: [],
     imageFit: "cover",
     isPublished: true,
@@ -140,7 +138,6 @@ function productToForm(product: AdminProduct): ProductFormState {
     description: product.description,
     specs: specsToRows(product.specs),
     features: (product.features ?? []).join("\n"),
-    soundNotes: product.soundDemo?.notesDescription ?? "",
     images: product.images ?? [],
     imageFit: product.imageFit === "contain" ? "contain" : "cover",
     isPublished: Boolean(product.isPublished),
@@ -606,11 +603,10 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             isBestSeller: selectedProduct?.isBestSeller ?? false,
             isTopDeal: selectedProduct?.isTopDeal ?? false,
             freeShipping: selectedProduct?.freeShipping ?? false,
-            soundDemo: {
-              type: selectedProduct?.soundDemo?.type ?? "drums_latin",
-              duration: selectedProduct?.soundDemo?.duration ?? 5,
-              notesDescription:
-                form.soundNotes.trim() || form.name.trim() || "Perfil de sonido",
+            soundDemo: selectedProduct?.soundDemo ?? {
+              type: "drums_latin",
+              duration: 5,
+              notesDescription: form.name,
             },
           }),
         }
@@ -1142,7 +1138,6 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                   image={form.images[0] ?? ""}
                   imageFit={form.imageFit}
                   hasAudioPreview={form.hasAudioPreview}
-                  soundNotes={form.soundNotes}
                   isPublished={form.isPublished}
                 />
                 <div className="space-y-1.5">
@@ -1259,20 +1254,6 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                 <div className="space-y-1.5">
                   <label className={labelClass} htmlFor="product-features">Características (una por línea)</label>
                   <textarea id="product-features" rows={3} className={inputClass} value={form.features} onChange={(e) => updateForm("features", e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <label className={labelClass} htmlFor="product-sound-notes">Descripción del perfil de sonido</label>
-                  <input
-                    id="product-sound-notes"
-                    className={inputClass}
-                    value={form.soundNotes}
-                    onChange={(e) => updateForm("soundNotes", e.target.value)}
-                    placeholder="Ej.: Voz cálida y presencia marcada"
-                  />
-                  <p className="text-[10px] text-[#e3deda]">
-                    Texto que aparece junto al botón de reproducir tono. Solo si activas la vista
-                    previa de audio.
-                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <label className={labelClass} htmlFor="product-image-fit">Ajuste de imagen</label>
