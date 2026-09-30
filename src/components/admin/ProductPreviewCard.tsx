@@ -153,16 +153,22 @@ export function ProductPreviewCard({
         <span className="block text-xs font-bold uppercase tracking-wider text-[#e3deda]">
           Especificaciones de fábrica
         </span>
-        <div className="mt-2 divide-y divide-[#3F3F46] rounded-xl border border-[#52525B] bg-[#121212] p-3 text-xs">
+        <div className="mt-2 overflow-hidden rounded-xl border border-[#52525B] bg-[#121212] text-xs">
           {visibleSpecs.length === 0 ? (
-            <p className="py-1 text-[11px] text-[#e3deda]">
-              Las especificaciones que agregues se muestran aquí.
+            <p className="px-3 py-4 text-[11px] text-[#e3deda]">
+              Las especificaciones que agregues se muestran aquí, con la clave a la izquierda y
+              el valor a la derecha.
             </p>
           ) : (
             visibleSpecs.map((row) => (
-              <div key={row.id} className="flex justify-between gap-4 py-1.5 first:pt-0 last:pb-0">
-                <span className="font-medium text-[#e3deda]">{row.label}:</span>
-                <span className="max-w-[65%] whitespace-pre-line text-left font-semibold text-white">
+              <div
+                key={row.id}
+                className="grid grid-cols-[minmax(0,38%)_minmax(0,1fr)] gap-3 border-b border-[#3F3F46] px-3 py-2.5 last:border-b-0"
+              >
+                <span className="font-semibold leading-snug text-[#e3deda]">
+                  {row.label}:
+                </span>
+                <span className="whitespace-pre-line leading-snug text-white">
                   {row.value}
                 </span>
               </div>

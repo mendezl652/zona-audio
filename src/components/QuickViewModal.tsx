@@ -224,14 +224,15 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
                 <span className="text-xs font-bold uppercase tracking-wider text-[#e3deda] block">
                   Especificaciones de fábrica
                 </span>
-                <div className="bg-[#27272A]/70 rounded-xl border border-[#52525B] p-3 divide-y divide-[#3F3F46] text-xs">
+                <div className="bg-[#27272A]/70 overflow-hidden rounded-xl border border-[#52525B] text-xs">
                   {Object.entries(product.specs).map(([label, val]) =>
                     val ? (
-                      <div key={label} className="py-1.5 first:pt-0 last:pb-0 flex justify-between">
-                        <span className="text-[#e3deda] font-medium">{label}:</span>
-                        <span className="text-[#FFFFFF] font-semibold text-left whitespace-pre-line max-w-[65%]">
-                          {val}
-                        </span>
+                      <div
+                        key={label}
+                        className="grid grid-cols-[minmax(0,38%)_minmax(0,1fr)] gap-3 border-b border-[#3F3F46] px-3 py-2.5 last:border-b-0"
+                      >
+                        <span className="font-semibold leading-snug text-[#e3deda]">{label}:</span>
+                        <span className="whitespace-pre-line leading-snug text-white">{val}</span>
                       </div>
                     ) : null
                   )}
