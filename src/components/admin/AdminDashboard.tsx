@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import {
   Boxes,
   Check,
+  Download,
+  FileText,
   LogOut,
   Package,
   Pencil,
@@ -24,8 +26,16 @@ import {
 } from "lucide-react";
 import type { Product } from "@/data/products";
 import type { AdminCatalogSnapshot } from "@/lib/catalog";
+import type { SavedInvoice } from "@/lib/admin/invoices";
 
-type AdminTab = "products" | "categories" | "brands";
+type AdminTab = "products" | "categories" | "brands" | "invoices";
+
+type InvoiceItem = {
+  id: string;
+  description: string;
+  quantity: string;
+  unitPrice: string;
+};
 
 type ProductFormState = {
   id: string | null;
@@ -102,6 +112,178 @@ function productToForm(product: Product): ProductFormState {
   };
 }
 
+function formatInvoiceMoney(value: number) {
+  return `$${value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function wrapCanvasText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines = 3
+) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    if (context.measureText(candidate).width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+      if (lines.length === maxLines - 1) break;
+    } else {
+      currentLine = candidate;
+    }
+  }
+  if (currentLine && lines.length < maxLines) lines.push(currentLine);
+
+  lines.forEach((line, index) => {
+    context.fillText(line, x, y + index * lineHeight);
+  });
+  return y + lines.length * lineHeight;
+}
+
+function createInvoiceImageBlob(
+  clientName: string,
+  paymentMethod: string,
+  items: InvoiceItem[],
+  total: number
+): Promise<Blob> {
+  const visibleItems = items.filter((item) => item.description.trim());
+  const rowHeight = 112;
+  const canvas = document.createElement("canvas");
+  canvas.width = 1400;
+  canvas.height = Math.max(1300, 760 + visibleItems.length * rowHeight + 260);
+  const context = canvas.getContext("2d");
+  if (!context) return Promise.reject(new Error("No se pudo preparar la imagen."));
+
+  const background = "#121212";
+  const card = "#27272A";
+  const border = "#3F3F46";
+  const accent = "#d47217";
+  const white = "#FFFFFF";
+  const secondary = "#e3deda";
+  const date = new Intl.DateTimeFormat("es-VE", { dateStyle: "long" }).format(
+    new Date()
+  );
+
+  context.fillStyle = background;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = accent;
+  context.fillRect(0, 0, canvas.width, 18);
+  context.textBaseline = "top";
+
+  context.fillStyle = white;
+  context.font = "800 64px Arial, sans-serif";
+  context.fillText("ZONA AUDIO", 84, 82);
+  context.fillStyle = accent;
+  context.font = "700 26px Arial, sans-serif";
+  context.fillText("FACTURA / RECIBO DE COMPRA", 86, 164);
+  context.fillStyle = secondary;
+  context.font = "400 24px Arial, sans-serif";
+  context.fillText("Caracas, Venezuela  ·  0414-2868519", 86, 214);
+  context.textAlign = "right";
+  context.fillText(date, canvas.width - 86, 214);
+  context.textAlign = "left";
+
+  context.fillStyle = card;
+  context.fillRect(70, 280, canvas.width - 140, 150);
+  context.fillStyle = accent;
+  context.fillRect(70, 280, 10, 150);
+  context.fillStyle = secondary;
+  context.font = "700 22px Arial, sans-serif";
+  context.fillText("DATOS DEL CLIENTE", 110, 312);
+  context.fillStyle = white;
+  context.font = "700 36px Arial, sans-serif";
+  context.fillText(clientName.trim() || "Cliente por definir", 110, 352);
+
+  const tableLeft = 70;
+  const tableWidth = canvas.width - 140;
+  const tableTop = 490;
+  context.fillStyle = card;
+  context.fillRect(tableLeft, tableTop, tableWidth, 76);
+  context.fillStyle = accent;
+  context.fillRect(tableLeft, tableTop, tableWidth, 8);
+  context.fillStyle = secondary;
+  context.font = "700 22px Arial, sans-serif";
+  context.fillText("CANTIDAD", tableLeft + 34, tableTop + 30);
+  context.fillText("PRODUCTO", tableLeft + 190, tableTop + 30);
+  context.fillText("PRECIO UNIT.", tableLeft + 800, tableTop + 30);
+  context.fillText("TOTAL", tableLeft + 1040, tableTop + 30);
+
+  let rowTop = tableTop + 76;
+  context.strokeStyle = border;
+  context.lineWidth = 2;
+  visibleItems.forEach((item) => {
+    const quantity = Number(item.quantity) || 0;
+    const unitPrice = Number(item.unitPrice) || 0;
+    context.fillStyle = card;
+    context.fillRect(tableLeft, rowTop, tableWidth, rowHeight);
+    context.strokeRect(tableLeft, rowTop, tableWidth, rowHeight);
+    context.fillStyle = white;
+    context.font = "700 28px Arial, sans-serif";
+    context.fillText(String(quantity), tableLeft + 34, rowTop + 38);
+    context.font = "500 26px Arial, sans-serif";
+    wrapCanvasText(context, item.description.trim(), tableLeft + 190, rowTop + 22, 560, 34, 3);
+    context.textAlign = "right";
+    context.fillText(formatInvoiceMoney(unitPrice), tableLeft + 960, rowTop + 38);
+    context.fillStyle = accent;
+    context.font = "800 28px Arial, sans-serif";
+    context.fillText(formatInvoiceMoney(quantity * unitPrice), tableLeft + tableWidth - 34, rowTop + 38);
+    context.textAlign = "left";
+    rowTop += rowHeight;
+  });
+
+  if (visibleItems.length === 0) {
+    context.fillStyle = card;
+    context.fillRect(tableLeft, rowTop, tableWidth, rowHeight);
+    context.strokeRect(tableLeft, rowTop, tableWidth, rowHeight);
+    context.fillStyle = secondary;
+    context.font = "500 26px Arial, sans-serif";
+    context.fillText("Agrega productos para completar el recibo", tableLeft + 34, rowTop + 38);
+    rowTop += rowHeight;
+  }
+
+  const totalTop = rowTop + 42;
+  context.fillStyle = accent;
+  context.fillRect(canvas.width - 590, totalTop, 520, 104);
+  context.fillStyle = white;
+  context.font = "800 28px Arial, sans-serif";
+  context.fillText("TOTAL A PAGAR", canvas.width - 550, totalTop + 22);
+  context.font = "800 40px Arial, sans-serif";
+  context.textAlign = "right";
+  context.fillText(formatInvoiceMoney(total), canvas.width - 110, totalTop + 58);
+  context.textAlign = "left";
+
+  context.fillStyle = card;
+  context.fillRect(70, totalTop, 650, 104);
+  context.fillStyle = secondary;
+  context.font = "700 22px Arial, sans-serif";
+  context.fillText("MÉTODO DE PAGO", 110, totalTop + 22);
+  context.fillStyle = white;
+  context.font = "600 30px Arial, sans-serif";
+  context.fillText(paymentMethod.trim() || "Por definir", 110, totalTop + 58);
+
+  context.fillStyle = secondary;
+  context.font = "400 22px Arial, sans-serif";
+  context.textAlign = "center";
+  context.fillText("Gracias por tu compra · Zona Audio", canvas.width / 2, canvas.height - 90);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("No se pudo generar la imagen de la factura."));
+    }, "image/png");
+  });
+}
+
 export const AdminDashboard: React.FC<{ userEmail: string }> = ({
   userEmail,
 }) => {
@@ -112,9 +294,21 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPreparingImage, setIsPreparingImage] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [newCategory, setNewCategory] = useState("");
   const [newBrand, setNewBrand] = useState("");
+  const [invoiceClient, setInvoiceClient] = useState("");
+  const [invoiceMethod, setInvoiceMethod] = useState("");
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
+    { id: "item-1", description: "", quantity: "1", unitPrice: "" },
+  ]);
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
+  const [invoiceImageUrl, setInvoiceImageUrl] = useState("");
+  const [invoiceImagePreview, setInvoiceImagePreview] = useState("");
+  const [savedInvoices, setSavedInvoices] = useState<SavedInvoice[]>([]);
+  const [invoiceSearch, setInvoiceSearch] = useState("");
+  const [isSavingInvoice, setIsSavingInvoice] = useState(false);
 
   const loadCatalog = useCallback(async () => {
     const response = await fetch("/api/admin/catalog", { cache: "no-store" });
@@ -143,17 +337,101 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     setIsLoading(false);
   }, [router]);
 
+  const loadInvoices = useCallback(async (search = "") => {
+    const response = await fetch(
+      `/api/admin/invoices${search ? `?search=${encodeURIComponent(search)}` : ""}`,
+      { cache: "no-store" }
+    );
+    if (response.status === 401) {
+      router.push("/admin/login");
+      return;
+    }
+    const payload = (await response.json()) as {
+      invoices?: SavedInvoice[];
+      error?: string;
+    };
+    if (!response.ok) {
+      setStatus({ type: "error", text: payload.error ?? "No se pudieron cargar las facturas." });
+      return;
+    }
+    setSavedInvoices(payload.invoices ?? []);
+  }, [router]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadCatalog();
+      void loadInvoices();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadCatalog]);
+  }, [loadCatalog, loadInvoices]);
 
   const selectedProduct = useMemo(
     () => catalog?.products.find((product) => product.id === form.id),
     [catalog, form.id]
   );
+
+  const invoiceTotal = useMemo(
+    () =>
+      invoiceItems.reduce((total, item) => {
+        const quantity = Number(item.quantity) || 0;
+        const unitPrice = Number(item.unitPrice) || 0;
+        return total + quantity * unitPrice;
+      }, 0),
+    [invoiceItems]
+  );
+
+  const invoiceMarkdown = useMemo(() => {
+    const rows = invoiceItems
+      .filter((item) => item.description.trim())
+      .map((item) => {
+        const quantity = Number(item.quantity) || 0;
+        const unitPrice = Number(item.unitPrice) || 0;
+        return `| ${quantity} | ${item.description.trim()} | ${formatInvoiceMoney(unitPrice)} | ${formatInvoiceMoney(quantity * unitPrice)} |`;
+      });
+    const detailRows = rows.length > 0 ? rows : "| 0 | Producto por definir | $0.00 | $0.00 |";
+    const date = new Intl.DateTimeFormat("es-VE", { dateStyle: "long" }).format(
+      new Date()
+    );
+
+    return [
+      "---",
+      "**ZONA AUDIO**",
+      "📍 Caracas, Venezuela",
+      "📞 0414-2868519",
+      `🗓️ **Fecha:** ${date}`,
+      "",
+      "**DATOS DEL CLIENTE:**",
+      `👤 **Nombre:** ${invoiceClient.trim() || "Por definir"}`,
+      "",
+      "**DETALLE DE LA COMPRA:**",
+      "",
+      "| Cantidad | Producto | Precio Unit. | Total |",
+      "| :---: | :--- | :---: | :---: |",
+      detailRows,
+      "",
+      `**TOTAL A PAGAR: ${formatInvoiceMoney(invoiceTotal)}**`,
+      "",
+      `**MÉTODO DE PAGO:** ${invoiceMethod.trim() || "Por definir"}`,
+      "---",
+    ].join("\n");
+  }, [invoiceClient, invoiceItems, invoiceMethod, invoiceTotal]);
+
+  const filteredInvoices = useMemo(() => {
+    const query = invoiceSearch.trim().toLowerCase();
+    if (!query) return savedInvoices;
+    return savedInvoices.filter((invoice) =>
+      [
+        invoice.client_name,
+        invoice.client_phone,
+        invoice.payment_method,
+        invoice.status,
+        invoice.items.map((item) => item.description).join(" "),
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    );
+  }, [invoiceSearch, savedInvoices]);
 
   const updateForm = <K extends keyof ProductFormState>(
     key: K,
@@ -329,6 +607,182 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     await loadCatalog();
   };
 
+  const addInvoiceItem = () => {
+    setInvoiceItems((current) => [
+      ...current,
+      { id: crypto.randomUUID(), description: "", quantity: "1", unitPrice: "" },
+    ]);
+  };
+
+  const updateInvoiceItem = (
+    id: string,
+    key: keyof Omit<InvoiceItem, "id">,
+    value: string
+  ) => {
+    setInvoiceItems((current) =>
+      current.map((item) => (item.id === id ? { ...item, [key]: value } : item))
+    );
+  };
+
+  const removeInvoiceItem = (id: string) => {
+    setInvoiceItems((current) =>
+      current.length > 1
+        ? current.filter((item) => item.id !== id)
+        : [{ id: "item-1", description: "", quantity: "1", unitPrice: "" }]
+    );
+  };
+
+  const resetInvoiceForm = () => {
+    setInvoiceId(null);
+    setInvoiceClient("");
+    setInvoiceMethod("");
+    setInvoiceImageUrl("");
+    setInvoiceImagePreview("");
+    setInvoiceItems([
+      { id: "item-1", description: "", quantity: "1", unitPrice: "" },
+    ]);
+  };
+
+  const editInvoice = (invoice: SavedInvoice) => {
+    setInvoiceId(invoice.id);
+    setInvoiceClient(invoice.client_name);
+    setInvoiceMethod(invoice.payment_method);
+    setInvoiceImageUrl(invoice.image_url);
+    setInvoiceImagePreview(invoice.image_url);
+    setInvoiceItems(
+      invoice.items.length > 0
+        ? invoice.items
+        : [{ id: "item-1", description: "", quantity: "1", unitPrice: "" }]
+    );
+    setInvoiceSearch("");
+    setStatus({ type: "success", text: "Factura cargada para editar." });
+  };
+
+  const persistInvoice = async (
+    imageUrlOverride = invoiceImageUrl
+  ): Promise<SavedInvoice | null> => {
+    if (!invoiceClient.trim()) {
+      setStatus({ type: "error", text: "Escribe el nombre del cliente." });
+      return null;
+    }
+    if (!invoiceItems.some((item) => item.description.trim())) {
+      setStatus({ type: "error", text: "Agrega al menos un producto." });
+      return null;
+    }
+
+    setIsSavingInvoice(true);
+    setStatus(null);
+    try {
+      const response = await fetch(
+        invoiceId ? `/api/admin/invoices/${invoiceId}` : "/api/admin/invoices",
+        {
+          method: invoiceId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientName: invoiceClient,
+            paymentMethod: invoiceMethod,
+            items: invoiceItems,
+            markdown: invoiceMarkdown,
+            imageUrl: imageUrlOverride,
+            status: "Enviada",
+          }),
+        }
+      );
+      const saved = (await response.json()) as SavedInvoice & { error?: string };
+      if (!response.ok) {
+        throw new Error(saved.error ?? "No se pudo guardar la factura.");
+      }
+      setSavedInvoices((current) =>
+        invoiceId
+          ? current.map((invoice) => (invoice.id === saved.id ? saved : invoice))
+          : [saved, ...current]
+      );
+      setInvoiceId(saved.id);
+      setInvoiceImageUrl(saved.image_url);
+      setStatus({ type: "success", text: "Factura guardada en el panel." });
+      return saved;
+    } catch (error) {
+      setStatus({
+        type: "error",
+        text: error instanceof Error ? error.message : "No se pudo guardar la factura.",
+      });
+      return null;
+    } finally {
+      setIsSavingInvoice(false);
+    }
+  };
+
+  const deleteInvoice = async (invoice: SavedInvoice) => {
+    if (!window.confirm(`¿Eliminar la factura de ${invoice.client_name}?`)) return;
+    const response = await fetch(`/api/admin/invoices/${invoice.id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      setStatus({ type: "error", text: "No se pudo eliminar la factura." });
+      return;
+    }
+    setSavedInvoices((current) =>
+      current.filter((item) => item.id !== invoice.id)
+    );
+    if (invoice.id === invoiceId) resetInvoiceForm();
+    setStatus({ type: "success", text: "Factura eliminada." });
+  };
+
+  const downloadInvoiceImage = async () => {
+    setStatus(null);
+    setIsPreparingImage(true);
+    try {
+      const blob = await createInvoiceImageBlob(
+        invoiceClient,
+        invoiceMethod,
+        invoiceItems,
+        invoiceTotal
+      );
+      const file = new File([blob], `factura-zona-audio-${Date.now()}.png`, {
+        type: "image/png",
+      });
+      const previewUrl = URL.createObjectURL(blob);
+      setInvoiceImagePreview(previewUrl);
+
+      const uploadBody = new FormData();
+      uploadBody.append("file", file);
+      const uploadResponse = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: uploadBody,
+      });
+      const uploadPayload = (await uploadResponse.json()) as {
+        url?: string;
+        error?: string;
+      };
+      if (!uploadResponse.ok || !uploadPayload.url) {
+        throw new Error(uploadPayload.error ?? "No se pudo guardar la imagen.");
+      }
+
+      setInvoiceImageUrl(uploadPayload.url);
+      const saved = await persistInvoice(uploadPayload.url);
+      if (!saved) return;
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = file.name;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      setStatus({
+        type: "success",
+        text: "Imagen descargada y factura guardada en el panel.",
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setStatus({
+        type: "error",
+        text: error instanceof Error ? error.message : "No se pudo generar la imagen.",
+      });
+    } finally {
+      setIsPreparingImage(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-[#121212] text-[#e3deda]">
@@ -369,6 +823,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             ["products", "Productos", Package],
             ["categories", "Categorías", Tags],
             ["brands", "Marcas", Boxes],
+            ["invoices", "Facturación", FileText],
           ] as const).map(([tab, label, Icon]) => (
             <button
               key={tab}
@@ -568,6 +1023,178 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                   <button type="button" onClick={() => handleDeleteBrand(brand.id, brand.name)} className="text-red-200 hover:text-red-100" aria-label={`Eliminar ${brand.name}`}><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {activeTab === "invoices" && (
+          <section className="space-y-5">
+            <div className="rounded-3xl border border-[#3F3F46] bg-[#27272A] p-5">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-[#d47217]/15 p-2 text-[#d47217]">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black">Facturación rápida</h2>
+                  <p className="mt-1 text-xs text-[#e3deda]">
+                    Genera recibos Markdown sin IVA, IGTF ni impuestos adicionales.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-5 xl:grid-cols-2">
+              <div className="rounded-3xl border border-[#3F3F46] bg-[#27272A] p-5">
+                <h3 className="text-sm font-black">Datos del recibo</h3>
+                <div className="mt-4 space-y-4">
+                  <div className="space-y-1.5">
+                    <label className={labelClass} htmlFor="invoice-client">Nombre del cliente</label>
+                    <input id="invoice-client" className={inputClass} value={invoiceClient} onChange={(event) => setInvoiceClient(event.target.value)} placeholder="Ej.: Juan Pérez" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelClass} htmlFor="invoice-method">Método de pago</label>
+                    <input id="invoice-method" className={inputClass} value={invoiceMethod} onChange={(event) => setInvoiceMethod(event.target.value)} placeholder="Ej.: Zelle, efectivo o pago móvil" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-[#3F3F46] bg-[#27272A] p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-black">Detalle de la compra</h3>
+                  <button type="button" onClick={addInvoiceItem} className={secondaryButton}>
+                    <Plus className="h-4 w-4" /> Añadir producto
+                  </button>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {invoiceItems.map((item) => (
+                    <div key={item.id} className="grid gap-2 rounded-2xl border border-[#3F3F46] bg-[#121212] p-3 sm:grid-cols-[1fr_90px_120px_36px] sm:items-end">
+                      <div className="space-y-1.5">
+                        <label className={labelClass}>Producto</label>
+                        <input className={inputClass} value={item.description} onChange={(event) => updateInvoiceItem(item.id, "description", event.target.value)} placeholder="Ej.: Micrófonos inalámbricos" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className={labelClass}>Cant.</label>
+                        <input type="number" min="1" step="1" className={inputClass} value={item.quantity} onChange={(event) => updateInvoiceItem(item.id, "quantity", event.target.value)} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className={labelClass}>Precio unit.</label>
+                        <input type="number" min="0" step="0.01" className={inputClass} value={item.unitPrice} onChange={(event) => updateInvoiceItem(item.id, "unitPrice", event.target.value)} placeholder="0.00" />
+                      </div>
+                      <button type="button" onClick={() => removeInvoiceItem(item.id)} className="mb-1 rounded-lg p-2 text-red-200 transition hover:bg-red-400/10" aria-label="Eliminar producto del recibo">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-[#3F3F46] pt-4 text-sm">
+                  <span className="text-[#e3deda]">Total a pagar</span>
+                  <strong className="font-mono text-lg text-[#d47217]">{formatInvoiceMoney(invoiceTotal)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-[#3F3F46] bg-[#27272A] p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-black">Recibo generado</h3>
+                  <p className="mt-1 text-xs text-[#e3deda]">Revisa el texto antes de enviarlo.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={downloadInvoiceImage}
+                    disabled={isPreparingImage}
+                    className={primaryButton}
+                  >
+                    <Download className="h-4 w-4" />
+                    {isPreparingImage ? "Preparando imagen..." : "Descargar imagen"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void persistInvoice()}
+                    disabled={isSavingInvoice || isPreparingImage}
+                    className={secondaryButton}
+                  >
+                    <Save className="h-4 w-4" />
+                    {isSavingInvoice ? "Guardando..." : invoiceId ? "Actualizar factura" : "Guardar factura"}
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4 rounded-2xl border border-[#3F3F46] bg-[#121212] px-4 py-3 text-xs text-[#e3deda]">
+                La imagen se descarga para que puedas enviarla manualmente al cliente. La factura también queda guardada en el panel.
+              </div>
+              {invoiceImagePreview && (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-[#3F3F46] bg-[#121212] p-3">
+                  <div
+                    className="mx-auto aspect-[1400/1000] w-full max-w-2xl bg-contain bg-center bg-no-repeat"
+                    style={{ backgroundImage: `url("${invoiceImagePreview}")` }}
+                    role="img"
+                    aria-label="Vista previa de la factura"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-[#3F3F46] bg-[#27272A] p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-black">Facturas guardadas ({savedInvoices.length})</h3>
+                  <p className="mt-1 text-xs text-[#e3deda]">Busca, edita o elimina recibos enviados.</p>
+                </div>
+                <button type="button" onClick={resetInvoiceForm} className={secondaryButton}>
+                  <Plus className="h-4 w-4" /> Nueva factura
+                </button>
+              </div>
+              <div className="relative mt-4">
+                <FileText className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#e3deda]" />
+                <input
+                  className={`${inputClass} pl-10`}
+                  value={invoiceSearch}
+                  onChange={(event) => {
+                    setInvoiceSearch(event.target.value);
+                    void loadInvoices(event.target.value);
+                  }}
+                  placeholder="Buscar por cliente, teléfono, método o producto"
+                />
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {filteredInvoices.map((invoice) => (
+                  <article key={invoice.id} className="rounded-2xl border border-[#3F3F46] bg-[#121212] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-white">{invoice.client_name}</p>
+                        <p className="mt-1 text-xs text-[#e3deda]">
+                          {invoice.payment_method} · {invoice.status}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-mono text-sm font-black text-[#d47217]">
+                        {formatInvoiceMoney(invoice.total)}
+                      </span>
+                    </div>
+                    <p className="mt-2 truncate text-[11px] text-[#e3deda]">
+                      {invoice.items.map((item) => `${item.quantity} × ${item.description}`).join(" · ")}
+                    </p>
+                    <p className="mt-1 text-[10px] text-[#8e837e]">
+                      {invoice.created_at
+                        ? new Date(invoice.created_at).toLocaleString("es-VE")
+                        : "Sin fecha"}
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <button type="button" onClick={() => editInvoice(invoice)} className={secondaryButton}>
+                        <Pencil className="h-3.5 w-3.5" /> Editar
+                      </button>
+                      <button type="button" onClick={() => void deleteInvoice(invoice)} className="inline-flex items-center gap-2 rounded-xl border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200 transition hover:bg-red-400/10">
+                        <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              {filteredInvoices.length === 0 && (
+                <p className="mt-4 rounded-xl border border-dashed border-[#52525B] px-4 py-6 text-center text-xs text-[#e3deda]">
+                  No se encontraron facturas guardadas.
+                </p>
+              )}
             </div>
           </section>
         )}
