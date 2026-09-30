@@ -51,7 +51,6 @@ type ProductFormState = {
   stock: string;
   description: string;
   specs: SpecRow[];
-  features: string;
   images: string[];
   imageFit: "cover" | "contain";
   isPublished: boolean;
@@ -114,7 +113,6 @@ function emptyForm(): ProductFormState {
     stock: "0",
     description: "",
     specs: [],
-    features: "",
     images: [],
     imageFit: "cover",
     isPublished: true,
@@ -137,7 +135,6 @@ function productToForm(product: AdminProduct): ProductFormState {
     stock: String(product.stock ?? 0),
     description: product.description,
     specs: specsToRows(product.specs),
-    features: (product.features ?? []).join("\n"),
     images: product.images ?? [],
     imageFit: product.imageFit === "contain" ? "contain" : "cover",
     isPublished: Boolean(product.isPublished),
@@ -591,7 +588,6 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             stock: form.stock,
             description: form.description,
             specs: rowsToSpecsText(form.specs),
-            features: form.features,
             images: form.images,
             imageFit: form.imageFit,
             isPublished: form.isPublished,
@@ -1250,10 +1246,6 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                     La columna izquierda es el nombre y la derecha el valor. Se muestran en la tabla
                     de la ficha del producto.
                   </p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className={labelClass} htmlFor="product-features">Características (una por línea)</label>
-                  <textarea id="product-features" rows={3} className={inputClass} value={form.features} onChange={(e) => updateForm("features", e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
                   <label className={labelClass} htmlFor="product-image-fit">Ajuste de imagen</label>
