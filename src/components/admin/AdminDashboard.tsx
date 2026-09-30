@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import {
   Boxes,
+  Calculator,
   Check,
   Download,
   FileText,
@@ -27,8 +28,9 @@ import {
 import type { Product } from "@/data/products";
 import type { AdminCatalogSnapshot } from "@/lib/catalog";
 import type { SavedInvoice } from "@/lib/admin/invoices";
+import type { SaleRecord } from "@/lib/admin/sales";
 
-type AdminTab = "products" | "categories" | "brands" | "invoices";
+type AdminTab = "products" | "categories" | "brands" | "invoices" | "finance";
 
 type InvoiceItem = {
   id: string;
@@ -322,6 +324,15 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
   const [savedInvoices, setSavedInvoices] = useState<SavedInvoice[]>([]);
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const [isSavingInvoice, setIsSavingInvoice] = useState(false);
+  const [sales, setSales] = useState<SaleRecord[]>([]);
+  const [saleId, setSaleId] = useState<string | null>(null);
+  const [saleProductId, setSaleProductId] = useState("");
+  const [saleQuantity, setSaleQuantity] = useState("1");
+  const [saleUnitCost, setSaleUnitCost] = useState("0");
+  const [saleDate, setSaleDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [saleNotes, setSaleNotes] = useState("");
+  const [salesPeriod, setSalesPeriod] = useState<"today" | "week" | "all">("today");
+  const [isSavingSale, setIsSavingSale] = useState(false);
 
   const loadCatalog = useCallback(async () => {
     const response = await fetch("/api/admin/catalog", { cache: "no-store" });
@@ -339,6 +350,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     }
 
     setCatalog(payload);
+    setSaleProductId((current) => current || payload.products[0]?.id || "");
     setForm((current) => {
       if (current.id || current.name) return current;
       return {
@@ -370,13 +382,31 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     setSavedInvoices(payload.invoices ?? []);
   }, [router]);
 
+  const loadSales = useCallback(async () => {
+    const response = await fetch("/api/admin/sales", { cache: "no-store" });
+    if (response.status === 401) {
+      router.push("/admin/login");
+      return;
+    }
+    const payload = (await response.json()) as {
+      sales?: SaleRecord[];
+      error?: string;
+    };
+    if (!response.ok) {
+      setStatus({ type: "error", text: payload.error ?? "No se pudieron cargar las ventas." });
+      return;
+    }
+    setSales(payload.sales ?? []);
+  }, [router]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadCatalog();
       void loadInvoices();
+      void loadSales();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadCatalog, loadInvoices]);
+  }, [loadCatalog, loadInvoices, loadSales]);
 
   const selectedProduct = useMemo(
     () => catalog?.products.find((product) => product.id === form.id),
@@ -458,6 +488,35 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
         .includes(query)
     );
   }, [invoiceSearch, savedInvoices]);
+
+  const filteredSales = useMemo(() => {
+    const today = new Date();
+    const todayString = today.toISOString().slice(0, 10);
+    const weekStart = new Date(today);
+    weekStart.setDate(weekStart.getDate() - 6);
+    const weekStartString = weekStart.toISOString().slice(0, 10);
+    return sales.filter((sale) => {
+      if (salesPeriod === "all") return true;
+      if (salesPeriod === "today") return sale.sale_date === todayString;
+      return sale.sale_date >= weekStartString && sale.sale_date <= todayString;
+    });
+  }, [sales, salesPeriod]);
+
+  const financialSummary = useMemo(() => {
+    const totalSold = filteredSales.reduce(
+      (total, sale) => total + Number(sale.gross_revenue ?? 0),
+      0
+    );
+    const netProfit = filteredSales.reduce(
+      (total, sale) => total + Number(sale.net_profit ?? 0),
+      0
+    );
+    return {
+      totalSold,
+      netProfit,
+      margin: totalSold > 0 ? (netProfit / totalSold) * 100 : 0,
+    };
+  }, [filteredSales]);
 
   const updateForm = <K extends keyof ProductFormState>(
     key: K,
@@ -763,6 +822,71 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     setStatus({ type: "success", text: "Factura eliminada." });
   };
 
+  const resetSaleForm = () => {
+    setSaleId(null);
+    setSaleQuantity("1");
+    setSaleUnitCost("0");
+    setSaleDate(new Date().toISOString().slice(0, 10));
+    setSaleNotes("");
+    setSaleProductId(catalog?.products[0]?.id ?? "");
+  };
+
+  const editSale = (sale: SaleRecord) => {
+    setSaleId(sale.id);
+    setSaleProductId(sale.product_id);
+    setSaleQuantity(String(sale.quantity));
+    setSaleUnitCost(String(sale.unit_cost));
+    setSaleDate(sale.sale_date);
+    setSaleNotes(sale.notes);
+  };
+
+  const saveSale = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!saleProductId) {
+      setStatus({ type: "error", text: "Selecciona un producto." });
+      return;
+    }
+    setIsSavingSale(true);
+    setStatus(null);
+    try {
+      const response = await fetch(saleId ? `/api/admin/sales/${saleId}` : "/api/admin/sales", {
+        method: saleId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: saleProductId,
+          quantity: saleQuantity,
+          unitCost: saleUnitCost,
+          saleDate,
+          notes: saleNotes,
+        }),
+      });
+      const payload = (await response.json()) as SaleRecord & { error?: string };
+      if (!response.ok) throw new Error(payload.error ?? "No se pudo guardar la venta.");
+      await loadSales();
+      resetSaleForm();
+      setStatus({ type: "success", text: "Venta registrada correctamente." });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        text: error instanceof Error ? error.message : "No se pudo guardar la venta.",
+      });
+    } finally {
+      setIsSavingSale(false);
+    }
+  };
+
+  const deleteSale = async (sale: SaleRecord) => {
+    if (!window.confirm(`¿Eliminar la venta de ${sale.product_name}?`)) return;
+    const response = await fetch(`/api/admin/sales/${sale.id}`, { method: "DELETE" });
+    if (!response.ok) {
+      setStatus({ type: "error", text: "No se pudo eliminar la venta." });
+      return;
+    }
+    await loadSales();
+    if (sale.id === saleId) resetSaleForm();
+    setStatus({ type: "success", text: "Venta eliminada." });
+  };
+
   const downloadInvoiceImage = async () => {
     setStatus(null);
     setIsPreparingImage(true);
@@ -862,6 +986,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             ["categories", "Categorías", Tags],
             ["brands", "Marcas", Boxes],
             ["invoices", "Facturación", FileText],
+            ["finance", "Finanzas", Calculator],
           ] as const).map(([tab, label, Icon]) => (
             <button
               key={tab}
@@ -1250,6 +1375,262 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                 <p className="mt-4 rounded-xl border border-dashed border-[#52525B] px-4 py-6 text-center text-xs text-[#e3deda]">
                   No se encontraron facturas guardadas.
                 </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {activeTab === "finance" && (
+          <section className="space-y-5">
+            <div className="rounded-3xl border border-[#3F3F46] bg-[#27272A] p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-black">Control de ventas y ganancias</h3>
+                  <p className="mt-1 text-xs text-[#e3deda]">
+                    El precio de venta se toma del precio publicado en la página web.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      ["today", "Hoy"],
+                      ["week", "Últimos 7 días"],
+                      ["all", "Todo"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setSalesPeriod(value)}
+                      className={salesPeriod === value ? primaryButton : secondaryButton}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="rounded-2xl border border-[#3F3F46] bg-[#121212] p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e3deda]">
+                    Total vendido
+                  </p>
+                  <p className="mt-2 font-mono text-2xl font-black text-white">
+                    {formatInvoiceMoney(financialSummary.totalSold)}
+                  </p>
+                  <p className="mt-1 text-[10px] text-[#8e837e]">Ingreso bruto del periodo</p>
+                </div>
+                <div className="rounded-2xl border border-[#3F3F46] bg-[#121212] p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e3deda]">
+                    Ganancia neta total
+                  </p>
+                  <p className="mt-2 font-mono text-2xl font-black text-[#d47217]">
+                    {formatInvoiceMoney(financialSummary.netProfit)}
+                  </p>
+                  <p className="mt-1 text-[10px] text-[#8e837e]">Ingreso bruto menos los costos</p>
+                </div>
+                <div className="rounded-2xl border border-[#3F3F46] bg-[#121212] p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[#e3deda]">
+                    Margen de rentabilidad
+                  </p>
+                  <p className="mt-2 font-mono text-2xl font-black text-white">
+                    {financialSummary.margin.toLocaleString("es-VE", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                    %
+                  </p>
+                  <p className="mt-1 text-[10px] text-[#8e837e]">Ganancia neta sobre el total vendido</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-[#3F3F46] bg-[#27272A] p-5">
+              <h3 className="text-sm font-black">
+                {saleId ? "Editar venta" : "Registrar venta"}
+              </h3>
+              <form onSubmit={saveSale} className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className={labelClass} htmlFor="sale-product">
+                    Producto
+                  </label>
+                  <select
+                    id="sale-product"
+                    className={inputClass}
+                    value={saleProductId}
+                    onChange={(event) => setSaleProductId(event.target.value)}
+                    required
+                  >
+                    <option value="">Selecciona un producto</option>
+                    {(catalog?.products ?? []).map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} · {formatInvoiceMoney(Number(product.price ?? 0))}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelClass} htmlFor="sale-quantity">
+                    Cantidad vendida
+                  </label>
+                  <input
+                    id="sale-quantity"
+                    className={inputClass}
+                    value={saleQuantity}
+                    onChange={(event) => setSaleQuantity(event.target.value)}
+                    inputMode="decimal"
+                    min="1"
+                    step="1"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelClass} htmlFor="sale-unit-cost">
+                    Costo unitario (lo que te costó a ti)
+                  </label>
+                  <input
+                    id="sale-unit-cost"
+                    className={inputClass}
+                    value={saleUnitCost}
+                    onChange={(event) => setSaleUnitCost(event.target.value)}
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelClass} htmlFor="sale-date">
+                    Fecha de la venta
+                  </label>
+                  <input
+                    id="sale-date"
+                    type="date"
+                    className={inputClass}
+                    value={saleDate}
+                    onChange={(event) => setSaleDate(event.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelClass} htmlFor="sale-notes">
+                    Nota
+                  </label>
+                  <input
+                    id="sale-notes"
+                    className={inputClass}
+                    value={saleNotes}
+                    onChange={(event) => setSaleNotes(event.target.value)}
+                    placeholder="Ej.: pago por Binance"
+                  />
+                </div>
+                <div className="md:col-span-2 flex flex-wrap gap-2">
+                  <button type="submit" className={primaryButton} disabled={isSavingSale}>
+                    <Save className="h-4 w-4" />
+                    {isSavingSale ? "Guardando..." : saleId ? "Actualizar venta" : "Registrar venta"}
+                  </button>
+                  {saleId && (
+                    <button type="button" onClick={resetSaleForm} className={secondaryButton}>
+                      Cancelar edición
+                    </button>
+                  )}
+                </div>
+              </form>
+              <div className="mt-4 rounded-2xl border border-[#3F3F46] bg-[#121212] px-4 py-3 text-xs text-[#e3deda]">
+                Registra cada venta con su costo real. El panel calcula el ingreso bruto, la ganancia
+                neta y el margen de rentabilidad usando el precio publicado en la web.
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-3xl border border-[#3F3F46] bg-[#27272A]">
+              <div className="px-5 pt-5">
+                <h3 className="text-sm font-black">Registro de ventas ({filteredSales.length})</h3>
+                <p className="mt-1 text-xs text-[#e3deda]">
+                  Reportes guardados del periodo seleccionado.
+                </p>
+              </div>
+              {filteredSales.length === 0 ? (
+                <p className="m-5 rounded-xl border border-dashed border-[#52525B] px-4 py-6 text-center text-xs text-[#e3deda]">
+                  Todavía no hay ventas registradas en este periodo.
+                </p>
+              ) : (
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full min-w-[820px] text-left text-xs">
+                    <thead className="bg-[#121212] text-[10px] uppercase tracking-wide text-[#e3deda]">
+                      <tr>
+                        <th className="px-5 py-3 font-bold">Producto</th>
+                        <th className="px-3 py-3 font-bold">Cantidad</th>
+                        <th className="px-3 py-3 font-bold">Costo unitario</th>
+                        <th className="px-3 py-3 font-bold">Precio de venta</th>
+                        <th className="px-3 py-3 font-bold">Ingreso bruto</th>
+                        <th className="px-3 py-3 font-bold">Ganancia neta</th>
+                        <th className="px-3 py-3 font-bold">Fecha</th>
+                        <th className="px-5 py-3 font-bold">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSales.map((sale) => (
+                        <tr
+                          key={sale.id}
+                          className="border-t border-[#3F3F46] align-top text-white"
+                        >
+                          <td className="px-5 py-3">
+                            <p className="font-bold">{sale.product_name}</p>
+                            {sale.notes && (
+                              <p className="mt-0.5 text-[10px] text-[#e3deda]">{sale.notes}</p>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 font-mono">{sale.quantity}</td>
+                          <td className="px-3 py-3 font-mono">
+                            {formatInvoiceMoney(Number(sale.unit_cost))}
+                          </td>
+                          <td className="px-3 py-3 font-mono">
+                            {formatInvoiceMoney(Number(sale.unit_price))}
+                          </td>
+                          <td className="px-3 py-3 font-mono text-white">
+                            {formatInvoiceMoney(Number(sale.gross_revenue))}
+                          </td>
+                          <td className="px-3 py-3 font-mono font-bold text-[#d47217]">
+                            {formatInvoiceMoney(Number(sale.net_profit))}
+                          </td>
+                          <td className="px-3 py-3 font-mono text-[#e3deda]">{sale.sale_date}</td>
+                          <td className="px-5 py-3">
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => editSale(sale)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-[#52525B] px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:border-[#d47217]"
+                              >
+                                <Pencil className="h-3 w-3" /> Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void deleteSale(sale)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-red-400/30 px-2.5 py-1.5 text-[11px] font-bold text-red-200 transition hover:bg-red-400/10"
+                              >
+                                <Trash2 className="h-3 w-3" /> Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-[#121212]">
+                      <tr className="text-white">
+                        <td className="px-5 py-3 font-black" colSpan={4}>
+                          Totales del periodo
+                        </td>
+                        <td className="px-3 py-3 font-mono font-black">
+                          {formatInvoiceMoney(financialSummary.totalSold)}
+                        </td>
+                        <td className="px-3 py-3 font-mono font-black text-[#d47217]">
+                          {formatInvoiceMoney(financialSummary.netProfit)}
+                        </td>
+                        <td className="px-3 py-3" colSpan={2} />
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               )}
             </div>
           </section>

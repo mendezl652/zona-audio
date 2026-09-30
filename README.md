@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zona Audio
 
-## Getting Started
+Tienda en línea de equipos y artículos de audio, con catálogo público, carrito, checkout con tasa
+BCV, pago en divisas o bolívares, y un panel privado para administrar productos, facturación y
+ganancias.
 
-First, run the development server:
+## Puesta en marcha
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) para la tienda y
+[http://localhost:3000/admin/login](http://localhost:3000/admin/login) para el panel privado.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables de entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copia `.env.example` como `.env.local` y completa:
 
-## Learn More
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_CLAVE_ANON
+SUPABASE_SERVICE_ROLE_KEY=TU_CLAVE_SERVICE_ROLE
+ADMIN_EMAIL=tu-correo@ejemplo.com
+```
 
-To learn more about Next.js, take a look at the following resources:
+`.env.local` está excluido de Git. La clave `service_role` solo se usa en el servidor.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Base de datos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ejecuta en Supabase → **SQL Editor**, en este orden:
 
-## Deploy on Vercel
+1. `supabase/schema.sql` (o las migraciones sueltas si la base ya existe)
+2. `supabase/002_invoices.sql` — tabla de facturas
+3. `supabase/003_invoice_fields.sql` — cédula/RIF, teléfono y descripción adicional
+4. `supabase/004_sales.sql` — tabla de ventas y ganancias
+5. `supabase/seed.sql` — catálogo inicial de productos
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Funciones
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Tienda
+
+- Catálogo por categorías y marcas, con búsqueda y detalles de producto.
+- Carrito persistente en el navegador, cantidades y cupones.
+- Checkout en dos modalidades: divisas (14% de descuento) o bolívares con tasa BCV.
+- Pedido enviado a WhatsApp con el formato fijo de la tienda.
+
+### Panel privado
+
+- Productos: crear, editar, eliminar, imágenes, precio, stock, especificaciones.
+- Categorías y marcas administrables.
+- Facturación: generar la imagen de la factura, descargarla, guardarla y buscarla.
+- Finanzas: registrar ventas con su costo real y ver total vendido, ganancia neta y margen.
+
+## Más información
+
+- Guía del panel: `docs/PANEL_ADMIN.md`
+- Documentación de Next.js: [nextjs.org/docs](https://nextjs.org/docs)
