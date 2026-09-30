@@ -13,8 +13,11 @@ export type CatalogSnapshot = {
   brands: string[];
 };
 
+/** Producto visto desde el panel: incluye el estado de publicación. */
+export type AdminProduct = Product & { isPublished: boolean };
+
 export type AdminCatalogSnapshot = {
-  products: Product[];
+  products: AdminProduct[];
   categories: Array<{ id: string; name: string }>;
   brands: Array<{ id: string; name: string }>;
 };
@@ -164,7 +167,10 @@ export async function getAdminCatalog(): Promise<AdminCatalogSnapshot> {
   if (brandResult.error) throw new Error(brandResult.error.message);
 
   return {
-    products: (productResult.data ?? []).map((row) => mapProductRow(row as Row)),
+    products: (productResult.data ?? []).map((row) => ({
+      ...mapProductRow(row as Row),
+      isPublished: (row as Row).is_published !== false,
+    })),
     categories: (categoryResult.data ?? []).map((row) => ({
       id: asString((row as Row).id),
       name: asString((row as Row).name),

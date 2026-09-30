@@ -26,9 +26,10 @@ import {
   X,
 } from "lucide-react";
 import type { Product } from "@/data/products";
-import type { AdminCatalogSnapshot } from "@/lib/catalog";
+import type { AdminCatalogSnapshot, AdminProduct } from "@/lib/catalog";
 import type { SavedInvoice } from "@/lib/admin/invoices";
 import type { SaleRecord } from "@/lib/admin/sales";
+import { ProductPreviewCard } from "@/components/admin/ProductPreviewCard";
 
 type AdminTab = "products" | "categories" | "brands" | "invoices" | "finance";
 
@@ -49,8 +50,9 @@ type ProductFormState = {
   originalPrice: string;
   stock: string;
   description: string;
-  specs: string;
+  specs: SpecRow[];
   features: string;
+  soundNotes: string;
   images: string[];
   imageFit: "cover" | "contain";
   isPublished: boolean;
@@ -58,6 +60,40 @@ type ProductFormState = {
   isNew: boolean;
   hasAudioPreview: boolean;
 };
+
+/** Una fila de la tabla "Especificaciones de fábrica". */
+type SpecRow = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+/** Convierte el texto guardado en filas editables. */
+function parseSpecs(rows: SpecRow[]): SpecRow[] {
+  return rows.filter((row) => row.label.trim() || row.value.trim());
+}
+
+function specsToRows(specs: Record<string, string | undefined> | undefined): SpecRow[] {
+  return Object.entries(specs ?? {})
+    .filter(([label]) => label.trim())
+    .map(([label, value], index) => ({
+      id: `spec-${index}-${label}`,
+      label,
+      value: typeof value === "string" ? value : "",
+    }));
+}
+
+function rowsToSpecsText(rows: SpecRow[]): string {
+  return parseSpecs(rows)
+    .map((row) => `${row.label.trim()}: ${row.value.trim()}`)
+    .join("\n");
+}
+
+let specRowCounter = 0;
+function createSpecRow(label = "", value = ""): SpecRow {
+  specRowCounter += 1;
+  return { id: `spec-new-${specRowCounter}`, label, value };
+}
 
 const inputClass =
   "w-full rounded-xl border border-[#52525B] bg-[#121212] px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-[#e3deda] focus:border-[#d47217]";
@@ -78,8 +114,9 @@ function emptyForm(): ProductFormState {
     originalPrice: "",
     stock: "0",
     description: "",
-    specs: "",
+    specs: [],
     features: "",
+    soundNotes: "",
     images: [],
     imageFit: "cover",
     isPublished: true,
@@ -89,7 +126,7 @@ function emptyForm(): ProductFormState {
   };
 }
 
-function productToForm(product: Product): ProductFormState {
+function productToForm(product: AdminProduct): ProductFormState {
   return {
     id: product.id,
     name: product.name,
@@ -101,13 +138,12 @@ function productToForm(product: Product): ProductFormState {
       product.originalPrice === undefined ? "" : String(product.originalPrice),
     stock: String(product.stock ?? 0),
     description: product.description,
-    specs: Object.entries(product.specs ?? {})
-      .map(([key, value]) => `${key}: ${value ?? ""}`)
-      .join("\n"),
+    specs: specsToRows(product.specs),
     features: (product.features ?? []).join("\n"),
+    soundNotes: product.soundDemo?.notesDescription ?? "",
     images: product.images ?? [],
     imageFit: product.imageFit === "contain" ? "contain" : "cover",
-    isPublished: true,
+    isPublished: Boolean(product.isPublished),
     isFeatured: Boolean(product.isFeatured),
     isNew: Boolean(product.isNew),
     hasAudioPreview: Boolean(product.hasAudioPreview),
@@ -557,7 +593,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             originalPrice: form.originalPrice,
             stock: form.stock,
             description: form.description,
-            specs: form.specs,
+            specs: rowsToSpecsText(form.specs),
             features: form.features,
             images: form.images,
             imageFit: form.imageFit,
@@ -570,10 +606,11 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             isBestSeller: selectedProduct?.isBestSeller ?? false,
             isTopDeal: selectedProduct?.isTopDeal ?? false,
             freeShipping: selectedProduct?.freeShipping ?? false,
-            soundDemo: selectedProduct?.soundDemo ?? {
-              type: "drums_latin",
-              duration: 5,
-              notesDescription: form.name,
+            soundDemo: {
+              type: selectedProduct?.soundDemo?.type ?? "drums_latin",
+              duration: selectedProduct?.soundDemo?.duration ?? 5,
+              notesDescription:
+                form.soundNotes.trim() || form.name.trim() || "Perfil de sonido",
             },
           }),
         }
@@ -593,6 +630,24 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const duplicateProduct = (product: AdminProduct) => {
+    const copy = productToForm(product);
+    setForm({
+      ...copy,
+      id: null,
+      name: `${product.name} (copia)`,
+      isPublished: false,
+      isFeatured: false,
+      isNew: false,
+      // Las filas necesitan ids propios para poder editarse sin colisionar.
+      specs: copy.specs.map((row) => createSpecRow(row.label, row.value)),
+    });
+    setStatus({
+      type: "success",
+      text: "Producto duplicado en el formulario. Revísalo y guarda.",
+    });
   };
 
   const handleDeleteProduct = async (product: Product) => {
@@ -1028,11 +1083,35 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                         <p className="mt-1 text-xs text-[#e3deda]">
                           {product.brand} • ${product.price.toLocaleString("es-VE")} • stock {product.stock}
                         </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${product.isPublished ? "bg-[#d47217] text-white" : "border border-[#52525B] text-[#e3deda]"}`}>
+                            {product.isPublished ? "En la web" : "Borrador"}
+                          </span>
+                          {product.isFeatured && (
+                            <span className="rounded-md border border-[#52525B] px-2 py-0.5 text-[10px] font-bold text-[#e3deda]">
+                              Destacado
+                            </span>
+                          )}
+                          {product.isNew && (
+                            <span className="rounded-md border border-[#52525B] px-2 py-0.5 text-[10px] font-bold text-[#e3deda]">
+                              Novedad
+                            </span>
+                          )}
+                          <span className="rounded-md border border-[#52525B] px-2 py-0.5 text-[10px] font-bold text-[#e3deda]">
+                            {Object.keys(product.specs ?? {}).length} especif.
+                          </span>
+                          <span className="rounded-md border border-[#52525B] px-2 py-0.5 text-[10px] font-bold text-[#e3deda]">
+                            {product.images.length} imagen{product.images.length === 1 ? "" : "es"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-4 flex flex-wrap gap-2">
                       <button type="button" onClick={() => setForm(productToForm(product))} className={secondaryButton}>
                         <Pencil className="h-3.5 w-3.5" /> Editar
+                      </button>
+                      <button type="button" onClick={() => duplicateProduct(product)} className={secondaryButton}>
+                        <Boxes className="h-3.5 w-3.5" /> Duplicar
                       </button>
                       <button type="button" onClick={() => handleDeleteProduct(product)} className="inline-flex items-center gap-2 rounded-xl border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200 transition hover:bg-red-400/10">
                         <Trash2 className="h-3.5 w-3.5" /> Eliminar
@@ -1053,6 +1132,19 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                 )}
               </div>
               <form onSubmit={handleSaveProduct} className="mt-5 space-y-4">
+                <ProductPreviewCard
+                  name={form.name}
+                  price={Number(form.price) || 0}
+                  originalPrice={Number(form.originalPrice) || 0}
+                  stock={Number(form.stock) || 0}
+                  description={form.description}
+                  specs={form.specs}
+                  image={form.images[0] ?? ""}
+                  imageFit={form.imageFit}
+                  hasAudioPreview={form.hasAudioPreview}
+                  soundNotes={form.soundNotes}
+                  isPublished={form.isPublished}
+                />
                 <div className="space-y-1.5">
                   <label className={labelClass} htmlFor="product-name">Nombre</label>
                   <input id="product-name" className={inputClass} value={form.name} onChange={(e) => updateForm("name", e.target.value)} required />
@@ -1095,13 +1187,92 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                   <label className={labelClass} htmlFor="product-description">Descripción</label>
                   <textarea id="product-description" rows={4} className={inputClass} value={form.description} onChange={(e) => updateForm("description", e.target.value)} />
                 </div>
-                <div className="space-y-1.5">
-                  <label className={labelClass} htmlFor="product-specs">Especificaciones (una por línea: Clave: valor)</label>
-                  <textarea id="product-specs" rows={4} className={inputClass} value={form.specs} onChange={(e) => updateForm("specs", e.target.value)} />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className={labelClass}>Especificaciones de fábrica</span>
+                    <button
+                      type="button"
+                      onClick={() => updateForm("specs", [...form.specs, createSpecRow()])}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#52525B] px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:border-[#d47217]"
+                    >
+                      <Plus className="h-3 w-3" /> Agregar fila
+                    </button>
+                  </div>
+                  {form.specs.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-[#52525B] px-3 py-4 text-center text-[11px] text-[#e3deda]">
+                      Todavía no hay especificaciones. Agrégalas para que aparezcan en la web.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {form.specs.map((row, index) => (
+                        <div key={row.id} className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto]">
+                          <input
+                            className={inputClass}
+                            value={row.label}
+                            onChange={(e) =>
+                              updateForm(
+                                "specs",
+                                form.specs.map((item) =>
+                                  item.id === row.id ? { ...item, label: e.target.value } : item
+                                )
+                              )
+                            }
+                            placeholder="Tipo de micrófono"
+                            aria-label={`Especificación ${index + 1}: nombre`}
+                          />
+                          <input
+                            className={inputClass}
+                            value={row.value}
+                            onChange={(e) =>
+                              updateForm(
+                                "specs",
+                                form.specs.map((item) =>
+                                  item.id === row.id ? { ...item, value: e.target.value } : item
+                                )
+                              )
+                            }
+                            placeholder="Dinámico unidireccional"
+                            aria-label={`Especificación ${index + 1}: valor`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateForm(
+                                "specs",
+                                form.specs.filter((item) => item.id !== row.id)
+                              )
+                            }
+                            className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-red-400/30 text-red-200 transition hover:bg-red-400/10"
+                            aria-label={`Quitar especificación ${index + 1}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-[#e3deda]">
+                    La columna izquierda es el nombre y la derecha el valor. Se muestran en la tabla
+                    de la ficha del producto.
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <label className={labelClass} htmlFor="product-features">Características (una por línea)</label>
                   <textarea id="product-features" rows={3} className={inputClass} value={form.features} onChange={(e) => updateForm("features", e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelClass} htmlFor="product-sound-notes">Descripción del perfil de sonido</label>
+                  <input
+                    id="product-sound-notes"
+                    className={inputClass}
+                    value={form.soundNotes}
+                    onChange={(e) => updateForm("soundNotes", e.target.value)}
+                    placeholder="Ej.: Voz cálida y presencia marcada"
+                  />
+                  <p className="text-[10px] text-[#e3deda]">
+                    Texto que aparece junto al botón de reproducir tono. Solo si activas la vista
+                    previa de audio.
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <label className={labelClass} htmlFor="product-image-fit">Ajuste de imagen</label>
