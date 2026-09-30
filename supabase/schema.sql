@@ -108,7 +108,9 @@ on conflict (name) do nothing;
 create table if not exists public.invoices (
   id uuid primary key default gen_random_uuid(),
   client_name text not null default 'Por definir',
+  client_id_rif text not null default '',
   client_phone text not null default '',
+  extra_description text not null default '',
   payment_method text not null default 'Por definir',
   items jsonb not null default '[]'::jsonb,
   total numeric(12, 2) not null default 0,

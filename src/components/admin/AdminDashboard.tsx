@@ -152,6 +152,9 @@ function wrapCanvasText(
 
 function createInvoiceImageBlob(
   clientName: string,
+  clientId: string,
+  clientPhone: string,
+  extraDescription: string,
   paymentMethod: string,
   items: InvoiceItem[],
   total: number
@@ -160,7 +163,7 @@ function createInvoiceImageBlob(
   const rowHeight = 112;
   const canvas = document.createElement("canvas");
   canvas.width = 1400;
-  canvas.height = Math.max(1300, 760 + visibleItems.length * rowHeight + 260);
+  canvas.height = Math.max(1450, 860 + visibleItems.length * rowHeight + 260);
   const context = canvas.getContext("2d");
   if (!context) return Promise.reject(new Error("No se pudo preparar la imagen."));
 
@@ -194,19 +197,26 @@ function createInvoiceImageBlob(
   context.textAlign = "left";
 
   context.fillStyle = card;
-  context.fillRect(70, 280, canvas.width - 140, 150);
+  context.fillRect(70, 280, canvas.width - 140, 250);
   context.fillStyle = accent;
-  context.fillRect(70, 280, 10, 150);
+  context.fillRect(70, 280, 10, 250);
   context.fillStyle = secondary;
   context.font = "700 22px Arial, sans-serif";
   context.fillText("DATOS DEL CLIENTE", 110, 312);
   context.fillStyle = white;
   context.font = "700 36px Arial, sans-serif";
   context.fillText(clientName.trim() || "Cliente por definir", 110, 352);
+  context.font = "500 24px Arial, sans-serif";
+  context.fillStyle = secondary;
+  context.fillText(`Cédula / RIF: ${clientId.trim() || "Por definir"}`, 110, 412);
+  context.fillText(`Teléfono: ${clientPhone.trim() || "Por definir"}`, 110, 452);
+  if (extraDescription.trim()) {
+    wrapCanvasText(context, `Nota: ${extraDescription.trim()}`, 110, 492, 1050, 30, 2);
+  }
 
   const tableLeft = 70;
   const tableWidth = canvas.width - 140;
-  const tableTop = 490;
+  const tableTop = 590;
   context.fillStyle = card;
   context.fillRect(tableLeft, tableTop, tableWidth, 76);
   context.fillStyle = accent;
@@ -299,6 +309,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
   const [newCategory, setNewCategory] = useState("");
   const [newBrand, setNewBrand] = useState("");
   const [invoiceClient, setInvoiceClient] = useState("");
+  const [invoiceClientId, setInvoiceClientId] = useState("");
+  const [invoiceClientPhone, setInvoiceClientPhone] = useState("");
+  const [invoiceExtraDescription, setInvoiceExtraDescription] = useState("");
   const [invoiceMethod, setInvoiceMethod] = useState("");
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
     { id: "item-1", description: "", quantity: "1", unitPrice: "" },
@@ -402,6 +415,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
       "",
       "**DATOS DEL CLIENTE:**",
       `👤 **Nombre:** ${invoiceClient.trim() || "Por definir"}`,
+      invoiceClientId.trim() ? `🪪 **Cédula / RIF:** ${invoiceClientId.trim()}` : "",
+      invoiceClientPhone.trim() ? `📱 **Teléfono:** ${invoiceClientPhone.trim()}` : "",
+      invoiceExtraDescription.trim() ? `📝 **Nota:** ${invoiceExtraDescription.trim()}` : "",
       "",
       "**DETALLE DE LA COMPRA:**",
       "",
@@ -414,7 +430,15 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
       `**MÉTODO DE PAGO:** ${invoiceMethod.trim() || "Por definir"}`,
       "---",
     ].join("\n");
-  }, [invoiceClient, invoiceItems, invoiceMethod, invoiceTotal]);
+  }, [
+    invoiceClient,
+    invoiceClientId,
+    invoiceClientPhone,
+    invoiceExtraDescription,
+    invoiceItems,
+    invoiceMethod,
+    invoiceTotal,
+  ]);
 
   const filteredInvoices = useMemo(() => {
     const query = invoiceSearch.trim().toLowerCase();
@@ -422,7 +446,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     return savedInvoices.filter((invoice) =>
       [
         invoice.client_name,
+        invoice.client_id_rif,
         invoice.client_phone,
+        invoice.extra_description,
         invoice.payment_method,
         invoice.status,
         invoice.items.map((item) => item.description).join(" "),
@@ -635,6 +661,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
   const resetInvoiceForm = () => {
     setInvoiceId(null);
     setInvoiceClient("");
+    setInvoiceClientId("");
+    setInvoiceClientPhone("");
+    setInvoiceExtraDescription("");
     setInvoiceMethod("");
     setInvoiceImageUrl("");
     setInvoiceImagePreview("");
@@ -646,6 +675,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
   const editInvoice = (invoice: SavedInvoice) => {
     setInvoiceId(invoice.id);
     setInvoiceClient(invoice.client_name);
+    setInvoiceClientId(invoice.client_id_rif);
+    setInvoiceClientPhone(invoice.client_phone);
+    setInvoiceExtraDescription(invoice.extra_description);
     setInvoiceMethod(invoice.payment_method);
     setInvoiceImageUrl(invoice.image_url);
     setInvoiceImagePreview(invoice.image_url);
@@ -680,6 +712,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             clientName: invoiceClient,
+            clientId: invoiceClientId,
+            clientPhone: invoiceClientPhone,
+            extraDescription: invoiceExtraDescription,
             paymentMethod: invoiceMethod,
             items: invoiceItems,
             markdown: invoiceMarkdown,
@@ -734,6 +769,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     try {
       const blob = await createInvoiceImageBlob(
         invoiceClient,
+        invoiceClientId,
+        invoiceClientPhone,
+        invoiceExtraDescription,
         invoiceMethod,
         invoiceItems,
         invoiceTotal
@@ -1052,6 +1090,18 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                     <input id="invoice-client" className={inputClass} value={invoiceClient} onChange={(event) => setInvoiceClient(event.target.value)} placeholder="Ej.: Juan Pérez" />
                   </div>
                   <div className="space-y-1.5">
+                    <label className={labelClass} htmlFor="invoice-client-id">Cédula o RIF del cliente</label>
+                    <input id="invoice-client-id" className={inputClass} value={invoiceClientId} onChange={(event) => setInvoiceClientId(event.target.value)} placeholder="Ej.: V-12345678" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelClass} htmlFor="invoice-client-phone">Número de teléfono</label>
+                    <input id="invoice-client-phone" className={inputClass} value={invoiceClientPhone} onChange={(event) => setInvoiceClientPhone(event.target.value)} placeholder="Ej.: 0412-1234567" inputMode="tel" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelClass} htmlFor="invoice-extra-description">Descripción adicional</label>
+                    <textarea id="invoice-extra-description" rows={3} className={inputClass} value={invoiceExtraDescription} onChange={(event) => setInvoiceExtraDescription(event.target.value)} placeholder="Ej.: Entrega en Caracas, nota de la orden, acordiones..." />
+                  </div>
+                  <div className="space-y-1.5">
                     <label className={labelClass} htmlFor="invoice-method">Método de pago</label>
                     <input id="invoice-method" className={inputClass} value={invoiceMethod} onChange={(event) => setInvoiceMethod(event.target.value)} placeholder="Ej.: Zelle, efectivo o pago móvil" />
                   </div>
@@ -1174,6 +1224,12 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                     <p className="mt-2 truncate text-[11px] text-[#e3deda]">
                       {invoice.items.map((item) => `${item.quantity} × ${item.description}`).join(" · ")}
                     </p>
+                    <p className="mt-1 text-[10px] text-[#8e837e]">
+                      {invoice.client_id_rif || "Sin cédula/RIF"} · {invoice.client_phone || "Sin teléfono"}
+                    </p>
+                    {invoice.extra_description && (
+                      <p className="mt-1 line-clamp-2 text-[10px] text-[#e3deda]">{invoice.extra_description}</p>
+                    )}
                     <p className="mt-1 text-[10px] text-[#8e837e]">
                       {invoice.created_at
                         ? new Date(invoice.created_at).toLocaleString("es-VE")

@@ -20,7 +20,9 @@ export async function GET(request: Request) {
         if (!search) return true;
         return [
           invoice.client_name,
+          invoice.client_id_rif,
           invoice.client_phone,
+          invoice.extra_description,
           invoice.payment_method,
           invoice.status,
           invoice.items.map((item) => item.description).join(" "),

@@ -10,7 +10,9 @@ export type InvoiceItemRecord = {
 export type SavedInvoice = {
   id: string;
   client_name: string;
+  client_id_rif: string;
   client_phone: string;
+  extra_description: string;
   payment_method: string;
   items: InvoiceItemRecord[];
   total: number;
@@ -64,8 +66,15 @@ export function normalizeInvoiceInput(input: unknown, partial = false) {
   if (!partial || has("clientName")) {
     data.client_name = asString(body.clientName, "cliente", true) ?? "Por definir";
   }
+  if (!partial || has("clientId")) {
+    data.client_id_rif = asString(body.clientId, "cédula o RIF") ?? "";
+  }
   if (!partial || has("clientPhone")) {
     data.client_phone = asString(body.clientPhone, "teléfono") ?? "";
+  }
+  if (!partial || has("extraDescription")) {
+    data.extra_description =
+      asString(body.extraDescription, "descripción adicional") ?? "";
   }
   if (!partial || has("paymentMethod")) {
     data.payment_method =
@@ -100,7 +109,9 @@ export function mapInvoiceRow(row: UnknownRecord): SavedInvoice {
   return {
     id: String(row.id ?? ""),
     client_name: String(row.client_name ?? "Por definir"),
+    client_id_rif: String(row.client_id_rif ?? ""),
     client_phone: String(row.client_phone ?? ""),
+    extra_description: String(row.extra_description ?? ""),
     payment_method: String(row.payment_method ?? "Por definir"),
     items: normalizeItems(row.items),
     total: Number(row.total ?? 0),
