@@ -50,7 +50,8 @@ type ProductFormState = {
   originalPrice: string;
   stock: string;
   description: string;
-  specs: SpecRow[];
+  /** Texto libre: una especificación por línea con el formato "Clave: valor". */
+  specs: string;
   images: string[];
   imageFit: "cover" | "contain";
   isPublished: boolean;
@@ -59,38 +60,43 @@ type ProductFormState = {
   hasAudioPreview: boolean;
 };
 
-/** Una fila de la tabla "Especificaciones de fábrica". */
+/** Una fila ya dividida, para mostrar en la vista previa. */
 type SpecRow = {
   id: string;
   label: string;
   value: string;
 };
 
-/** Convierte el texto guardado en filas editables. */
-function parseSpecs(rows: SpecRow[]): SpecRow[] {
-  return rows.filter((row) => row.label.trim() || row.value.trim());
+/**
+ * Divide el texto de especificaciones en filas "Clave: valor".
+ * Acepta también guion o signo igual como separador.
+ */
+function parseSpecs(text: string): SpecRow[] {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      const separator = line.search(/[:\-–=]/);
+      if (separator <= 0) {
+        return { id: `spec-${index}`, label: line, value: "" };
+      }
+      return {
+        id: `spec-${index}`,
+        label: line.slice(0, separator).trim(),
+        value: line.slice(separator + 1).trim(),
+      };
+    });
 }
 
-function specsToRows(specs: Record<string, string | undefined> | undefined): SpecRow[] {
+/** Vuelve a texto el formato "Clave: valor" que espera el servidor. */
+function specsFromProduct(
+  specs: Record<string, string | undefined> | undefined
+): string {
   return Object.entries(specs ?? {})
     .filter(([label]) => label.trim())
-    .map(([label, value], index) => ({
-      id: `spec-${index}-${label}`,
-      label,
-      value: typeof value === "string" ? value : "",
-    }));
-}
-
-function rowsToSpecsText(rows: SpecRow[]): string {
-  return parseSpecs(rows)
-    .map((row) => `${row.label.trim()}: ${row.value.trim()}`)
+    .map(([label, value]) => `${label.trim()}: ${String(value ?? "").trim()}`)
     .join("\n");
-}
-
-let specRowCounter = 0;
-function createSpecRow(label = "", value = ""): SpecRow {
-  specRowCounter += 1;
-  return { id: `spec-new-${specRowCounter}`, label, value };
 }
 
 const inputClass =
@@ -112,7 +118,7 @@ function emptyForm(): ProductFormState {
     originalPrice: "",
     stock: "0",
     description: "",
-    specs: [],
+    specs: "",
     images: [],
     imageFit: "cover",
     isPublished: true,
@@ -134,7 +140,7 @@ function productToForm(product: AdminProduct): ProductFormState {
       product.originalPrice === undefined ? "" : String(product.originalPrice),
     stock: String(product.stock ?? 0),
     description: product.description,
-    specs: specsToRows(product.specs),
+    specs: specsFromProduct(product.specs),
     images: product.images ?? [],
     imageFit: product.imageFit === "contain" ? "contain" : "cover",
     isPublished: Boolean(product.isPublished),
@@ -587,7 +593,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             originalPrice: form.originalPrice,
             stock: form.stock,
             description: form.description,
-            specs: rowsToSpecsText(form.specs),
+            specs: form.specs,
             images: form.images,
             imageFit: form.imageFit,
             isPublished: form.isPublished,
@@ -633,8 +639,6 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
       isPublished: false,
       isFeatured: false,
       isNew: false,
-      // Las filas necesitan ids propios para poder editarse sin colisionar.
-      specs: copy.specs.map((row) => createSpecRow(row.label, row.value)),
     });
     setStatus({
       type: "success",
@@ -1130,7 +1134,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                   originalPrice={Number(form.originalPrice) || 0}
                   stock={Number(form.stock) || 0}
                   description={form.description}
-                  specs={form.specs}
+                  specs={parseSpecs(form.specs)}
                   image={form.images[0] ?? ""}
                   imageFit={form.imageFit}
                   hasAudioPreview={form.hasAudioPreview}
@@ -1178,73 +1182,22 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                   <label className={labelClass} htmlFor="product-description">Descripción</label>
                   <textarea id="product-description" rows={4} className={inputClass} value={form.description} onChange={(e) => updateForm("description", e.target.value)} />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className={labelClass}>Especificaciones de fábrica</span>
-                    <button
-                      type="button"
-                      onClick={() => updateForm("specs", [...form.specs, createSpecRow()])}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#52525B] px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:border-[#d47217]"
-                    >
-                      <Plus className="h-3 w-3" /> Agregar fila
-                    </button>
-                  </div>
-                  {form.specs.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-[#52525B] px-3 py-4 text-center text-[11px] text-[#e3deda]">
-                      Todavía no hay especificaciones. Agrégalas para que aparezcan en la web.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {form.specs.map((row, index) => (
-                        <div key={row.id} className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto]">
-                          <input
-                            className={inputClass}
-                            value={row.label}
-                            onChange={(e) =>
-                              updateForm(
-                                "specs",
-                                form.specs.map((item) =>
-                                  item.id === row.id ? { ...item, label: e.target.value } : item
-                                )
-                              )
-                            }
-                            placeholder="Tipo de micrófono"
-                            aria-label={`Especificación ${index + 1}: nombre`}
-                          />
-                          <input
-                            className={inputClass}
-                            value={row.value}
-                            onChange={(e) =>
-                              updateForm(
-                                "specs",
-                                form.specs.map((item) =>
-                                  item.id === row.id ? { ...item, value: e.target.value } : item
-                                )
-                              )
-                            }
-                            placeholder="Dinámico unidireccional"
-                            aria-label={`Especificación ${index + 1}: valor`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateForm(
-                                "specs",
-                                form.specs.filter((item) => item.id !== row.id)
-                              )
-                            }
-                            className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-red-400/30 text-red-200 transition hover:bg-red-400/10"
-                            aria-label={`Quitar especificación ${index + 1}`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className="space-y-1.5">
+                  <label className={labelClass} htmlFor="product-specs">
+                    Especificaciones de fábrica
+                  </label>
+                  <textarea
+                    id="product-specs"
+                    rows={7}
+                    className={`${inputClass} font-mono text-xs leading-relaxed`}
+                    value={form.specs}
+                    onChange={(e) => updateForm("specs", e.target.value)}
+                    placeholder={"Tipo de micrófono: Dinámico unidireccional (cardioide)\nConectores: 4 salidas balanceadas XLR\nRespuesta de frecuencia: 50 Hz - 18 kHz\nRequerimientos de alimentación: 2 pilas AA"}
+                  />
                   <p className="text-[10px] text-[#e3deda]">
-                    La columna izquierda es el nombre y la derecha el valor. Se muestran en la tabla
-                    de la ficha del producto.
+                    Escribe una especificación por línea. La clave va antes de los dos puntos y el
+                    valor después. Puedes copiar y pegar fichas técnicas tal cual, el sistema las
+                    ordena solo.
                   </p>
                 </div>
                 <div className="space-y-1.5">
