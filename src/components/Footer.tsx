@@ -53,7 +53,7 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
             <div className="flex items-center gap-2 text-[#e3deda]">
               <Phone className="w-3.5 h-3.5 text-[#d47217] flex-shrink-0" />
-              <span>Asistencia personalizada: 0412-8050526</span>
+              <span>Asistencia personalizada: 0414-2868519</span>
             </div>
             <div className="flex items-center gap-2 text-[#e3deda]">
               <Clock className="w-3.5 h-3.5 text-[#d47217] flex-shrink-0" />

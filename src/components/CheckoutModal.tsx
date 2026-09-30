@@ -66,7 +66,7 @@ type SubmittedOrder = {
   whatsappUrl: string;
 };
 
-const WHATSAPP_NUMBER = "584128050526";
+const WHATSAPP_NUMBER = "584142868519";
 const EMPTY_CUSTOMER: CustomerDetails = {
   fullName: "",
   idNumber: "",
@@ -129,14 +129,14 @@ function getPaymentInstructions(
       return [
         "Banco: Bancamiga (0172)",
         "Cédula de identidad: V-30.235.425",
-        "Teléfono: 0412-8050526",
+        "Teléfono: 0414-2868519",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];
     case "transferencia":
       return [
         "Banco: Bancamiga (0172)",
         "Cédula de identidad: V-30.235.425",
-        "Teléfono de contacto: 0412-8050526",
+        "Teléfono de contacto: 0414-2868519",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];
     case "zelle":
@@ -453,7 +453,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     inputMode="tel"
                     required
                     autoComplete="tel"
-                    placeholder="0412-0000000"
+                    placeholder="0414-0000000"
                     value={customer.phone}
                     onChange={(e) => updateCustomer("phone", e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#27272A] border border-[#52525B] text-sm text-[#FFFFFF] focus:border-[#d47217] outline-none"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Image from "next/image";
 import {
   Search,
@@ -15,6 +15,11 @@ import { useCartStore, useWishlistStore } from "@/store/useStore";
 import { products as fallbackProducts, Product } from "@/data/products";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
+
+function emptySubscribe() {
+  // Nunca hay cambios: este hook solo marca "ya estamos en el navegador".
+  return () => {};
+}
 
 interface HeaderProps {
   onSelectCategory?: (category: string) => void;
@@ -45,8 +50,16 @@ export const Header: React.FC<HeaderProps> = ({
   const { getItemCount, getTotal, openCart } = useCartStore();
   const { items: wishlistItems, openWishlist } = useWishlistStore();
 
-  const cartCount = getItemCount();
-  const cartTotal = getTotal();
+  // El carrito vive en LocalStorage: el servidor siempre devuelve 0.
+  // useSyncExternalStore evita el desajuste de hydration sin setState en un efecto.
+  const hasMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+
+  const cartCount = hasMounted ? getItemCount() : 0;
+  const cartTotal = hasMounted ? getTotal() : 0;
 
   // Search filtering
   const searchResults = searchQuery.trim() === ""
@@ -251,7 +264,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="relative p-2.5 rounded-full bg-[#27272A] hover:bg-[#27272A] border border-[#52525B] text-[#e3deda] hover:text-[#FFFFFF] transition-all cursor-pointer"
             >
               <Heart className="w-4 h-4 hover:text-[#d47217] transition-colors" />
-              {wishlistItems.length > 0 && (
+              {hasMounted && wishlistItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#d47217] text-white text-[11px] font-bold flex items-center justify-center shadow-lg">
                   {wishlistItems.length.toLocaleString("es-ES")}
                 </span>

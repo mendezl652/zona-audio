@@ -1220,7 +1220,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                   </div>
                   <div className="space-y-1.5">
                     <label className={labelClass} htmlFor="invoice-client-phone">Número de teléfono</label>
-                    <input id="invoice-client-phone" className={inputClass} value={invoiceClientPhone} onChange={(event) => setInvoiceClientPhone(event.target.value)} placeholder="Ej.: 0412-1234567" inputMode="tel" />
+                    <input id="invoice-client-phone" className={inputClass} value={invoiceClientPhone} onChange={(event) => setInvoiceClientPhone(event.target.value)} placeholder="Ej.: 0414-1234567" inputMode="tel" />
                   </div>
                   <div className="space-y-1.5">
                     <label className={labelClass} htmlFor="invoice-extra-description">Descripción adicional</label>
