@@ -116,13 +116,14 @@ export const Header: React.FC<HeaderProps> = ({
                 alt="Zona Audio"
                 width={757}
                 height={187}
-                className="h-9 w-auto max-w-[155px] object-contain"
+                className="h-8 sm:h-9 w-auto max-w-[105px] sm:max-w-[155px] object-contain"
               />
-              <div className="flex flex-col">
+              {/* El logo ya incluye el nombre; en movil no lo repetimos. */}
+              <div className="hidden sm:flex flex-col">
                 <span className="text-sm font-black uppercase tracking-[0.18em] text-[#FFFFFF] group-hover:text-[#d47217] transition-colors">
                   Zona Audio
                 </span>
-                <span className="text-[10px] text-[#e3deda] font-medium tracking-wide">
+                <span className="text-[10px] text-[#e3deda] font-medium tracking-wide whitespace-nowrap">
                   Audio, instrumentos y tecnología
                 </span>
               </div>
