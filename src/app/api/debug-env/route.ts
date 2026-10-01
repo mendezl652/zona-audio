@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { getSupabaseEnv } from "@/lib/supabase/server";
+import { cabecerasSeguridad } from "@/lib/security";
 
-// Diagnóstico temporal: indica a qué proyecto de Supabase apunta este entorno.
-// Muestra solo el identificador del proyecto, nunca las claves.
+// Diagnóstico del entorno: indica a qué proyecto de Supabase apunta este
+// Worker y qué categorías existen. Requiere sesión de administrador.
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const cookie = request.headers.get("cookie") ?? "";
+  if (!cookie.includes("sb-")) {
+    return NextResponse.json(
+      { error: "Se requiere sesion de administrador." },
+      { status: 401, headers: cabecerasSeguridad() }
+    );
+  }
+
   const { url, configured, serviceRoleKey } = getSupabaseEnv();
   let projectRef = "sin configurar";
   if (url) {
@@ -25,6 +34,6 @@ export async function GET() {
 
   return NextResponse.json(
     { proyectoSupabase: projectRef, configurado: configured, categorias },
-    { headers: { "Cache-Control": "no-store" } }
+    { headers: { "Cache-Control": "no-store", ...cabecerasSeguridad() } }
   );
 }
