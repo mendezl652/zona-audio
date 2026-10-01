@@ -13,7 +13,7 @@ export const DiscountBanner: React.FC = () => {
         <span className="h-7 w-px shrink-0 bg-[#d47217]/35" />
         <div className="min-w-0">
           <strong className="block text-sm font-black leading-tight text-[#FFFFFF]">
-            14% de descuento en pagos en divisas
+            20% de descuento en pagos en divisas
           </strong>
           <span className="block text-[10px] font-medium uppercase tracking-[0.12em] text-[#e3deda]">
             Sobre todos nuestros productos

@@ -43,7 +43,7 @@ Ejecuta en Supabase → **SQL Editor**, en este orden:
 
 - Catálogo por categorías y marcas, con búsqueda y detalles de producto.
 - Carrito persistente en el navegador, cantidades y cupones.
-- Checkout en dos modalidades: divisas (14% de descuento) o bolívares con tasa BCV.
+- Checkout en dos modalidades: divisas (20% de descuento) o bolívares con tasa BCV.
 - Pedido enviado a WhatsApp con el formato fijo de la tienda.
 
 ### Panel privado

@@ -193,7 +193,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const discount = getDiscount();
   const shipping = getShipping();
   const baseTotal = getTotal();
-  const paymentDiscount = payment.mode === "divisas" ? subtotal * 0.14 : 0;
+  const paymentDiscount = payment.mode === "divisas" ? subtotal * 0.2 : 0;
   const total = Math.max(0, baseTotal - paymentDiscount);
   const totalVes = payment.mode === "bolivares" && rate > 0 ? total * rate : null;
   const cartCurrency: ProductCurrency = "USD";
@@ -529,7 +529,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   >
                     <span className="block text-xs font-bold">Pago en divisas</span>
                     <span className="block text-[11px] opacity-75 mt-1">Efectivo, Zelle o Binance Pay</span>
-                    <span className="inline-flex mt-2 rounded-full bg-[#25D366]/15 px-2 py-0.5 text-[10px] font-bold text-[#7EE2A1]">14% de descuento</span>
+                    <span className="inline-flex mt-2 rounded-full bg-[#25D366]/15 px-2 py-0.5 text-[10px] font-bold text-[#7EE2A1]">20% de descuento</span>
                   </button>
                   <button
                     type="button"
@@ -770,7 +770,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
                 {paymentDiscount > 0 && (
                   <div className="flex justify-between text-[#7EE2A1] font-semibold">
-                    <span>Descuento pago en divisas (14%)</span>
+                    <span>Descuento pago en divisas (20%)</span>
                     <span className="font-mono">
                       -{formatMoney(paymentDiscount, cartCurrency, { minimumFractionDigits: 2 })}
                     </span>
