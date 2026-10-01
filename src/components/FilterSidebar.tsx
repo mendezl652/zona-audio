@@ -105,7 +105,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             className="fixed inset-0 bg-black/75 backdrop-blur-sm"
             onClick={onCloseMobile}
           />
-          <div className="relative ml-auto w-full max-w-xs h-full bg-[#121212] border-l border-[#52525B] p-6 overflow-y-auto shadow-2xl z-10 flex flex-col justify-between">
+          <div className="relative mr-auto w-full max-w-xs h-full bg-[#121212] border-r border-[#52525B] p-6 overflow-y-auto shadow-2xl z-10 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#3F3F46]">
                 <span className="font-bold text-[#FFFFFF] text-base">Filtros de instrumentos</span>
