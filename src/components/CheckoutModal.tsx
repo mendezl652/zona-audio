@@ -764,7 +764,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <span>Envío</span>
                   <span className="font-mono text-[#FFFFFF]">
                     {shipping === 0
-                      ? "GRATIS"
+                      ? ""
                       : formatMoney(shipping, cartCurrency, { minimumFractionDigits: 2 })}
                   </span>
                 </div>
