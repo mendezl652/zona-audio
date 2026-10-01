@@ -125,9 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <Check className="w-3 h-3" /> En stock en Zona Audio ({product.stock.toLocaleString("es-ES")} {product.stock === 1 ? "unidad" : "unidades"})
               </span>
             )}
-            {!isOutOfStock && <span>•</span>}
-            {!isOutOfStock && <span>Envío aéreo VIP gratis</span>}
-          </div>
+            </div>
         </div>
 
         {/* Price & Actions */}
