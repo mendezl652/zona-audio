@@ -235,7 +235,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenCheckout }) => {
                   <div className="relative flex-1">
                     <input
                       type="text"
-                      placeholder="Código promocional (prueba AURAVIP2026)"
+                      placeholder="Código promocional"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
                       className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#27272A] border border-[#52525B] text-xs text-[#FFFFFF] uppercase placeholder:normal-case placeholder-[#e3deda] outline-none focus:border-[#d47217]"

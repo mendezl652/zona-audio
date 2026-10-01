@@ -97,7 +97,7 @@ export const useCartStore = create<CartStore>()(
         }
         return {
           success: false,
-          message: "Código promocional no válido. Prueba con AURAVIP2026",
+          message: "Código promocional no válido.",
         };
       },
       removeCoupon: () => set({ couponCode: "", discountRate: 0 }),
