@@ -86,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               )}
               {product.isTopDeal && (
                 <span className="text-[10px] font-black px-2 py-0.5 rounded bg-[#d47217] text-white">
-                  OFERTA VIP
+                  OFERTA
                 </span>
               )}
             </div>
@@ -237,7 +237,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
           {product.imageFit !== "contain" && product.isTopDeal && (
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#d47217] text-white shadow-md">
-              OFERTA VIP
+              OFERTA
             </span>
           )}
           {isOutOfStock && (

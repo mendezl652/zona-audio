@@ -310,7 +310,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenCheckout }) => {
                 onClick={handleCheckoutClick}
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#d47217] via-[#d47217] to-[#d47217] hover:opacity-95 text-white font-black text-sm tracking-wide shadow-xl shadow-[#d47217]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
               >
-                <span>Continuar al pago VIP</span>
+                <span>Continuar al pago</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 

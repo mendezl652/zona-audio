@@ -61,7 +61,7 @@ export const ReviewsSection: React.FC = () => {
                     {rev.author}
                   </span>
                   <span className="text-[10px] text-[#d47217] font-semibold flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" /> Comprador VIP verificado
+                    <CheckCircle className="w-3 h-3" /> Compra verificada
                   </span>
                 </div>
                 <div className="text-[11px] text-[#e3deda]">

@@ -52,7 +52,7 @@ export const StudioBundles: React.FC<StudioBundlesProps> = ({ onOpenQuickView })
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-[#e3deda] max-w-md">
-            Instrumentos seleccionados a mano y equipos de élite, diseñados para lograr un flujo de señal óptimo, una combinación de impedancias ideal y ahorros VIP instantáneos.
+            Instrumentos seleccionados a mano y equipos de élite, diseñados para lograr un flujo de señal óptimo, una combinación de impedancias ideal y ahorros instantáneos.
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export const StudioBundles: React.FC<StudioBundlesProps> = ({ onOpenQuickView })
                     </span>
                     <span className="text-xs font-bold text-[#d47217] bg-[#d47217]/15 px-2.5 py-1 rounded-lg border border-[#d47217]/30 flex items-center gap-1">
                       <Flame className="w-3 h-3 text-[#d47217]" />
-                      Ahorro VIP directo: ${bundle.savings.toLocaleString("es-ES")}
+                      Ahorro directo: ${bundle.savings.toLocaleString("es-ES")}
                     </span>
                   </div>
 
@@ -94,7 +94,7 @@ export const StudioBundles: React.FC<StudioBundlesProps> = ({ onOpenQuickView })
                   <div className="space-y-2 pt-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#e3deda] flex items-center gap-1">
                       <Package className="w-3 h-3 text-[#d47217]" />
-                      Incluye en este equipo VIP:
+                      Incluye en este equipo:
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {bundleItems.map((item) => (
@@ -148,7 +148,7 @@ export const StudioBundles: React.FC<StudioBundlesProps> = ({ onOpenQuickView })
                     className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#d47217] to-[#d47217] hover:opacity-95 text-white font-black text-xs transition-all shadow-lg shadow-[#d47217]/20 flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <ShoppingCart className="w-4 h-4" />
-                    <span>Adquirir paquete VIP</span>
+                    <span>Adquirir paquete</span>
                   </button>
                 </div>
               </div>
