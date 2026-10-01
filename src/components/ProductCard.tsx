@@ -204,7 +204,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   // Grid Mode Layout (Default Card with Warm Studio Styling)
   return (
-    <div className="group relative rounded-2xl glass-panel p-4 border border-[#d47217]/15 hover:border-[#d47217]/50 transition-all duration-300 flex flex-col justify-between shadow-xl hover:shadow-[#d47217]/15 hover:-translate-y-1">
+    <div className="group relative rounded-2xl glass-panel p-2.5 sm:p-4 border border-[#d47217]/15 hover:border-[#d47217]/50 transition-all duration-300 flex flex-col justify-between shadow-xl hover:shadow-[#d47217]/15 hover:-translate-y-1">
       {/* Top Media Container */}
       <div
         className={`relative w-full aspect-square rounded-xl overflow-hidden border border-[#3F3F46] ${
@@ -215,7 +215,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           src={product.images[0]}
           alt={product.name}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 640px) 45vw, (max-width: 1200px) 50vw, 33vw"
           className={`transition-transform duration-500 ${
             product.imageFit === "contain"
               ? "object-contain"
@@ -229,7 +229,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         {/* Badges Overlay */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 flex flex-col gap-1 sm:gap-1.5 z-10 max-w-[70%]">
           {product.imageFit !== "contain" && product.isNew && (
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#d47217] text-white shadow-md">
               NOVEDAD ZONA AUDIO
@@ -257,13 +257,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             onClick={handleWishlistToggle}
             aria-label={inWishlist ? "Quitar de la lista de deseos" : "Guardar en la lista de deseos"}
-            className={`absolute top-2.5 right-2.5 p-2 rounded-full backdrop-blur-md transition-all cursor-pointer z-10 ${
+            className={`absolute top-2 right-2 sm:top-2.5 sm:right-2.5 p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer z-10 ${
               inWishlist
                 ? "bg-[#d47217] text-white shadow-lg"
                 : "bg-[#121212]/70 text-[#e3deda] hover:text-white hover:bg-[#27272A] border border-white/10"
             }`}
           >
-            <Heart className={`w-3.5 h-3.5 ${inWishlist ? "fill-current" : ""}`} />
+            <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${inWishlist ? "fill-current" : ""}`} />
           </button>
         )}
 
@@ -283,21 +283,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {product.hasAudioPreview !== false && (
           <>
             {/* Audio Preview Strip on bottom of image */}
-            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between p-1.5 rounded-lg bg-[#121212]/85 backdrop-blur-md border border-[#d47217]/15">
+            <div className="absolute bottom-1.5 left-1.5 right-1.5 sm:bottom-2 sm:left-2 sm:right-2 flex items-center justify-between p-1 sm:p-1.5 rounded-lg bg-[#121212]/85 backdrop-blur-md border border-[#d47217]/15">
               <button
                 onClick={handleAudioToggle}
-                className={`flex items-center gap-2 text-[11px] font-bold px-2 py-1 rounded transition-colors cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded transition-colors cursor-pointer ${
                   isAudioPlaying
                     ? "bg-[#d47217] text-white"
                     : "text-[#d47217] hover:text-[#FFFFFF]"
                 }`}
               >
-                <Volume2 className={`w-3.5 h-3.5 ${isAudioPlaying ? "animate-pulse" : ""}`} />
+                <Volume2 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isAudioPlaying ? "animate-pulse" : ""}`} />
                 <span>{isAudioPlaying ? "Reproduciendo" : "Escuchar muestra"}</span>
               </button>
 
               {/* Mini Waveform Bars in Warm Accents */}
-              <div className="flex items-end gap-1 h-3 px-1">
+              <div className="hidden sm:flex items-end gap-1 h-3 px-1">
                 <span
                   className={`w-0.5 rounded-full bg-[#d47217] ${
                     isAudioPlaying ? "animate-bar-1" : "h-1"
@@ -321,36 +321,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Product Details */}
       <div className="pt-3 pb-1 space-y-1.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-[#d47217] uppercase tracking-wider text-[11px]">
+        <div className="flex items-center justify-between text-xs gap-1">
+          <span className="font-semibold text-[#d47217] uppercase tracking-wider text-[9px] sm:text-[11px] truncate">
             {product.brand}
           </span>
-          <div className="flex items-center gap-1 text-[#d47217] text-xs">
+          <div className="flex items-center gap-1 text-[#d47217] text-xs shrink-0">
             <Star className="w-3 h-3 fill-current" />
-            <span className="font-bold text-[#FFFFFF]">{product.rating.toLocaleString("es-ES", { maximumFractionDigits: 2 })}</span>
-            <span className="text-[#e3deda] text-[10px]">({product.reviewCount.toLocaleString("es-ES")})</span>
+            <span className="font-bold text-[#FFFFFF] text-[10px] sm:text-xs">{product.rating.toLocaleString("es-ES", { maximumFractionDigits: 2 })}</span>
+            <span className="text-[#e3deda] text-[9px] sm:text-[10px]">({product.reviewCount.toLocaleString("es-ES")})</span>
           </div>
         </div>
 
         <h3
           onClick={() => onOpenQuickView(product)}
-          className="text-sm font-bold text-[#FFFFFF] group-hover:text-[#d47217] transition-colors line-clamp-1 cursor-pointer"
+          className="text-[13px] sm:text-sm font-bold text-[#FFFFFF] group-hover:text-[#d47217] transition-colors line-clamp-2 sm:line-clamp-1 cursor-pointer"
         >
           {product.name}
         </h3>
 
-        <p className="text-xs text-[#e3deda] line-clamp-1">
+        <p className="hidden sm:block text-xs text-[#e3deda] line-clamp-1">
           {product.subcategory} • {Object.values(product.specs).filter(Boolean)[0]}
         </p>
 
         {/* Pricing and Cart CTA */}
-        <div className="pt-2 flex items-center justify-between">
-          <div>
-            <div className="text-lg font-black text-[#d47217] font-mono leading-none">
+        <div className="pt-2 flex items-center justify-between gap-1">
+          <div className="min-w-0">
+            <div className="text-base sm:text-lg font-black text-[#d47217] font-mono leading-none">
               {formatProductPrice(product)}
             </div>
             {rate > 0 && (
-              <div className="text-[10px] text-[#e3deda] mt-0.5">≈ {formatVes(product.price * rate)}</div>
+              <div className="text-[9px] sm:text-[10px] text-[#e3deda] mt-0.5 truncate">
+                ≈ {formatVes(product.price * rate)}
+              </div>
             )}
             {product.originalPrice && (
               <div className="text-[11px] text-[#e3deda] line-through font-mono">
@@ -363,7 +365,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={handleAddToCart}
             disabled={isOutOfStock}
             aria-label={isOutOfStock ? `${product.name} agotado` : `Agregar ${product.name} al carrito`}
-            className={`p-2.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center ${
+            className={`p-2 sm:p-2.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center shrink-0 ${
               isOutOfStock
                 ? "bg-[#3F3F46] text-[#e3deda] cursor-not-allowed"
                 : "active:scale-95 cursor-pointer " +

@@ -247,7 +247,7 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({
         <div
           className={
             viewMode === "grid"
-              ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
+              ? "grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 xl:grid-cols-3"
               : "space-y-4"
           }
         >
