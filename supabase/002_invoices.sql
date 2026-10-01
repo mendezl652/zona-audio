@@ -9,6 +9,8 @@ create table if not exists public.invoices (
   extra_description text not null default '',
   payment_method text not null default 'Por definir',
   items jsonb not null default '[]'::jsonb,
+  subtotal numeric(12, 2) not null default 0,
+  discount numeric(12, 2) not null default 0,
   total numeric(12, 2) not null default 0,
   markdown text not null default '',
   image_url text not null default '',

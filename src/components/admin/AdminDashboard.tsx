@@ -194,14 +194,20 @@ function createInvoiceImageBlob(
   clientPhone: string,
   extraDescription: string,
   paymentMethod: string,
+  paymentModality: "divisas" | "bolivares",
   items: InvoiceItem[],
+  subtotal: number,
+  discount: number,
   total: number
 ): Promise<Blob> {
   const visibleItems = items.filter((item) => item.description.trim());
   const rowHeight = 112;
+  // Si hay descuento, el bloque de totales crece una fila.
+  const totalsExtra = discount > 0 ? 72 : 0;
   const canvas = document.createElement("canvas");
   canvas.width = 1400;
-  canvas.height = Math.max(1450, 860 + visibleItems.length * rowHeight + 260);
+  canvas.height =
+    Math.max(1450, 860 + visibleItems.length * rowHeight + 260) + totalsExtra;
   const context = canvas.getContext("2d");
   if (!context) return Promise.reject(new Error("No se pudo preparar la imagen."));
 
@@ -300,24 +306,74 @@ function createInvoiceImageBlob(
   }
 
   const totalTop = rowTop + 42;
-  context.fillStyle = accent;
-  context.fillRect(canvas.width - 590, totalTop, 520, 104);
-  context.fillStyle = white;
-  context.font = "800 28px Arial, sans-serif";
-  context.fillText("TOTAL A PAGAR", canvas.width - 550, totalTop + 22);
-  context.font = "800 40px Arial, sans-serif";
-  context.textAlign = "right";
-  context.fillText(formatInvoiceMoney(total), canvas.width - 110, totalTop + 58);
-  context.textAlign = "left";
+  const totalHeight = 104 + totalsExtra;
+
+  if (discount > 0) {
+    context.fillStyle = card;
+    context.strokeStyle = border;
+    context.lineWidth = 2;
+    context.fillRect(canvas.width - 590, totalTop, 520, 104 + totalsExtra);
+    context.strokeRect(canvas.width - 590, totalTop, 520, 104 + totalsExtra);
+
+    context.fillStyle = secondary;
+    context.font = "700 22px Arial, sans-serif";
+    context.fillText("SUBTOTAL", canvas.width - 550, totalTop + 30);
+    context.fillStyle = white;
+    context.font = "600 28px Arial, sans-serif";
+    context.textAlign = "right";
+    context.fillText(formatInvoiceMoney(subtotal), canvas.width - 110, totalTop + 30);
+
+    context.textAlign = "left";
+    context.fillStyle = accent;
+    context.font = "700 22px Arial, sans-serif";
+    context.fillText(
+      "DESCUENTO 20% · PAGO EN DIVISAS",
+      canvas.width - 550,
+      totalTop + 72
+    );
+    context.fillStyle = accent;
+    context.font = "700 28px Arial, sans-serif";
+    context.textAlign = "right";
+    context.fillText(`-${formatInvoiceMoney(discount)}`, canvas.width - 110, totalTop + 72);
+
+    context.textAlign = "left";
+    context.fillStyle = accent;
+    context.fillRect(canvas.width - 550, totalTop + 92, 440, 2);
+
+    context.fillStyle = white;
+    context.font = "800 28px Arial, sans-serif";
+    context.fillText("TOTAL A PAGAR", canvas.width - 550, totalTop + 130);
+    context.font = "800 40px Arial, sans-serif";
+    context.textAlign = "right";
+    context.fillText(formatInvoiceMoney(total), canvas.width - 110, totalTop + 166);
+    context.textAlign = "left";
+  } else {
+    context.fillStyle = accent;
+    context.fillRect(canvas.width - 590, totalTop, 520, 104);
+    context.fillStyle = white;
+    context.font = "800 28px Arial, sans-serif";
+    context.fillText("TOTAL A PAGAR", canvas.width - 550, totalTop + 22);
+    context.font = "800 40px Arial, sans-serif";
+    context.textAlign = "right";
+    context.fillText(formatInvoiceMoney(total), canvas.width - 110, totalTop + 58);
+    context.textAlign = "left";
+  }
 
   context.fillStyle = card;
-  context.fillRect(70, totalTop, 650, 104);
+  context.fillRect(70, totalTop, 650, totalHeight);
   context.fillStyle = secondary;
   context.font = "700 22px Arial, sans-serif";
   context.fillText("MÉTODO DE PAGO", 110, totalTop + 22);
   context.fillStyle = white;
   context.font = "600 30px Arial, sans-serif";
   context.fillText(paymentMethod.trim() || "Por definir", 110, totalTop + 58);
+  context.fillStyle = secondary;
+  context.font = "500 22px Arial, sans-serif";
+  context.fillText(
+    paymentModality === "divisas" ? "Pago en divisas" : "Pago en bolívares",
+    110,
+    totalTop + 96
+  );
 
   context.fillStyle = secondary;
   context.font = "400 22px Arial, sans-serif";
@@ -351,6 +407,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
   const [invoiceClientPhone, setInvoiceClientPhone] = useState("");
   const [invoiceExtraDescription, setInvoiceExtraDescription] = useState("");
   const [invoiceMethod, setInvoiceMethod] = useState("");
+  const [invoiceModality, setInvoiceModality] = useState<"divisas" | "bolivares">(
+    "divisas"
+  );
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
     { id: "item-1", description: "", quantity: "1", unitPrice: "" },
   ]);
@@ -449,7 +508,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     [catalog, form.id]
   );
 
-  const invoiceTotal = useMemo(
+  const invoiceSubtotal = useMemo(
     () =>
       invoiceItems.reduce((total, item) => {
         const quantity = Number(item.quantity) || 0;
@@ -458,6 +517,11 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
       }, 0),
     [invoiceItems]
   );
+
+  // El mismo 20% que el checkout aplica en pagos en divisas.
+  const invoiceDiscountRate = invoiceModality === "divisas" ? 0.2 : 0;
+  const invoiceDiscount = invoiceSubtotal * invoiceDiscountRate;
+  const invoiceTotal = invoiceSubtotal - invoiceDiscount;
 
   const invoiceMarkdown = useMemo(() => {
     const rows = invoiceItems
@@ -491,9 +555,16 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
       "| :---: | :--- | :---: | :---: |",
       detailRows,
       "",
+      `**SUBTOTAL: ${formatInvoiceMoney(invoiceSubtotal)}**`,
+      invoiceDiscount > 0
+        ? `**DESCUENTO 20% (PAGO EN DIVISAS): -${formatInvoiceMoney(invoiceDiscount)}**`
+        : "",
       `**TOTAL A PAGAR: ${formatInvoiceMoney(invoiceTotal)}**`,
       "",
       `**MÉTODO DE PAGO:** ${invoiceMethod.trim() || "Por definir"}`,
+      `**MODALIDAD:** ${
+        invoiceModality === "divisas" ? "Pago en divisas" : "Pago en bolívares"
+      }`,
       "---",
     ].join("\n");
   }, [
@@ -503,6 +574,9 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     invoiceExtraDescription,
     invoiceItems,
     invoiceMethod,
+    invoiceModality,
+    invoiceSubtotal,
+    invoiceDiscount,
     invoiceTotal,
   ]);
 
@@ -775,6 +849,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
     setInvoiceClientPhone("");
     setInvoiceExtraDescription("");
     setInvoiceMethod("");
+    setInvoiceModality("divisas");
     setInvoiceImageUrl("");
     setInvoiceImagePreview("");
     setInvoiceItems([
@@ -826,6 +901,7 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
             clientPhone: invoiceClientPhone,
             extraDescription: invoiceExtraDescription,
             paymentMethod: invoiceMethod,
+            paymentModality: invoiceModality,
             items: invoiceItems,
             markdown: invoiceMarkdown,
             imageUrl: imageUrlOverride,
@@ -948,7 +1024,10 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
         invoiceClientPhone,
         invoiceExtraDescription,
         invoiceMethod,
+        invoiceModality,
         invoiceItems,
+        invoiceSubtotal,
+        invoiceDiscount,
         invoiceTotal
       );
       const file = new File([blob], `factura-zona-audio-${Date.now()}.png`, {
@@ -1324,6 +1403,32 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                     <textarea id="invoice-extra-description" rows={3} className={inputClass} value={invoiceExtraDescription} onChange={(event) => setInvoiceExtraDescription(event.target.value)} placeholder="Ej.: Entrega en Caracas, nota de la orden, acordiones..." />
                   </div>
                   <div className="space-y-1.5">
+                    <span className={labelClass}>Modalidad de pago</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(
+                        [
+                          ["divisas", "Divisas", "20% de descuento"],
+                          ["bolivares", "Bolívares", "Precio completo"],
+                        ] as const
+                      ).map(([value, label, hint]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setInvoiceModality(value)}
+                          aria-pressed={invoiceModality === value}
+                          className={`rounded-xl border px-3 py-2.5 text-left transition ${
+                            invoiceModality === value
+                              ? "border-[#d47217] bg-[#d47217]/10"
+                              : "border-[#52525B] bg-[#121212] hover:border-[#d47217]/60"
+                          }`}
+                        >
+                          <span className="block text-xs font-black text-white">{label}</span>
+                          <span className="block text-[10px] text-[#e3deda]">{hint}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
                     <label className={labelClass} htmlFor="invoice-method">Método de pago</label>
                     <input id="invoice-method" className={inputClass} value={invoiceMethod} onChange={(event) => setInvoiceMethod(event.target.value)} placeholder="Ej.: Zelle, efectivo o pago móvil" />
                   </div>
@@ -1358,9 +1463,21 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 flex items-center justify-between border-t border-[#3F3F46] pt-4 text-sm">
-                  <span className="text-[#e3deda]">Total a pagar</span>
-                  <strong className="font-mono text-lg text-[#d47217]">{formatInvoiceMoney(invoiceTotal)}</strong>
+                <div className="mt-4 space-y-2 border-t border-[#3F3F46] pt-4 text-sm">
+                  <div className="flex items-center justify-between text-[#e3deda]">
+                    <span>Subtotal</span>
+                    <span className="font-mono">{formatInvoiceMoney(invoiceSubtotal)}</span>
+                  </div>
+                  {invoiceDiscount > 0 && (
+                    <div className="flex items-center justify-between text-[#d47217]">
+                      <span>Descuento 20% (pago en divisas)</span>
+                      <span className="font-mono">-{formatInvoiceMoney(invoiceDiscount)}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="font-bold text-white">Total a pagar</span>
+                    <strong className="font-mono text-lg text-[#d47217]">{formatInvoiceMoney(invoiceTotal)}</strong>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1438,9 +1555,21 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                         <p className="mt-1 text-xs text-[#e3deda]">
                           {invoice.payment_method} · {invoice.status}
                         </p>
+                        {invoice.discount > 0 && (
+                          <p className="mt-1 text-[10px] font-bold text-[#d47217]">
+                            20% de descuento aplicado
+                          </p>
+                        )}
                       </div>
-                      <span className="shrink-0 font-mono text-sm font-black text-[#d47217]">
-                        {formatInvoiceMoney(invoice.total)}
+                      <span className="shrink-0 text-right">
+                        {invoice.discount > 0 && (
+                          <span className="block font-mono text-[10px] text-[#e3deda] line-through">
+                            {formatInvoiceMoney(invoice.subtotal)}
+                          </span>
+                        )}
+                        <span className="block font-mono text-sm font-black text-[#d47217]">
+                          {formatInvoiceMoney(invoice.total)}
+                        </span>
                       </span>
                     </div>
                     <p className="mt-2 truncate text-[11px] text-[#e3deda]">

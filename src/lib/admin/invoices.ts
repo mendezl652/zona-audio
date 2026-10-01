@@ -15,6 +15,8 @@ export type SavedInvoice = {
   extra_description: string;
   payment_method: string;
   items: InvoiceItemRecord[];
+  subtotal: number;
+  discount: number;
   total: number;
   markdown: string;
   image_url: string;
@@ -84,11 +86,19 @@ export function normalizeInvoiceInput(input: unknown, partial = false) {
     const items = normalizeItems(body.items);
     if (items.length === 0) throw new Error("Agrega al menos un producto a la factura.");
     data.items = items;
-    data.total = items.reduce((total, item) => {
+    const subtotal = items.reduce((total, item) => {
       const quantity = Number(item.quantity) || 0;
       const unitPrice = Number(item.unitPrice) || 0;
       return total + quantity * unitPrice;
     }, 0);
+    // El mismo 20% que aplica el checkout en pagos en divisas.
+    const discount =
+      asString(body.paymentModality ?? "divisas", "modalidad") === "bolivares"
+        ? 0
+        : Number((subtotal * 0.2).toFixed(2));
+    data.subtotal = subtotal;
+    data.discount = discount;
+    data.total = Number((subtotal - discount).toFixed(2));
   }
   if (!partial || has("markdown")) {
     data.markdown = asString(body.markdown, "recibo") ?? "";
@@ -114,6 +124,8 @@ export function mapInvoiceRow(row: UnknownRecord): SavedInvoice {
     extra_description: String(row.extra_description ?? ""),
     payment_method: String(row.payment_method ?? "Por definir"),
     items: normalizeItems(row.items),
+    subtotal: Number(row.subtotal ?? row.total ?? 0),
+    discount: Number(row.discount ?? 0),
     total: Number(row.total ?? 0),
     markdown: String(row.markdown ?? ""),
     image_url: String(row.image_url ?? ""),
