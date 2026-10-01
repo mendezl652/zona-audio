@@ -123,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
                   Zona Audio
                 </span>
                 <span className="text-[10px] text-[#e3deda] font-medium tracking-wide">
-                  Audio, instrumentos y estudio
+                  Audio, instrumentos y tecnología
                 </span>
               </div>
             </button>

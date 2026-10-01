@@ -36,9 +36,9 @@ export const products: Product[] = (productsData as unknown) as Product[];
 
 export const categories = [
   "Todos",
-  "Teclados y pianos",
-  "Audio profesional y micrófonos",
-  "Baterías y percusión",
+  "Audio",
+  "Instrumentos",
+  "Tecnología",
   "Accesorios"
 ] as const;
 

@@ -196,10 +196,7 @@ export default function Home() {
       </main>
 
       {/* 6. Footer */}
-      <Footer
-        onSelectCategory={handleSelectCategory}
-        categories={catalogCategories}
-      />
+      <Footer />
 
       {/* Drawers, Modals & Floating Audio Dock */}
       <CartDrawer onOpenCheckout={() => setIsCheckoutOpen(true)} />

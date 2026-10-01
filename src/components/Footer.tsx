@@ -7,21 +7,12 @@ import {
   MapPin,
   Clock
 } from "lucide-react";
-import { categories as fallbackCategories } from "@/data/products";
 
-interface FooterProps {
-  onSelectCategory?: (category: string) => void;
-  categories?: readonly string[];
-}
-
-export const Footer: React.FC<FooterProps> = ({
-  onSelectCategory,
-  categories = fallbackCategories,
-}) => {
+export const Footer: React.FC = () => {
   return (
     <footer className="bg-[#121212] border-t border-[#d47217]/15 text-[#e3deda] text-xs">
       {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto py-12 px-4 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto py-12 px-4 lg:px-8">
         {/* Brand Column */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center gap-3">
@@ -37,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({
                 Zona Audio
               </span>
               <span className="text-[10px] text-[#e3deda] tracking-wider">
-                Audio, instrumentos y estudio
+                Audio, instrumentos y tecnología
               </span>
             </div>
           </div>
@@ -62,36 +53,13 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        {/* Categories Column */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
-            Catálogo de instrumentos
-          </h4>
-          <ul className="space-y-2">
-            {categories.slice(1).map((cat) => (
-              <li key={cat}>
-                <button
-                  onClick={() => {
-                    if (onSelectCategory) onSelectCategory(cat);
-                    const catalogEl = document.getElementById("catalog-section");
-                    if (catalogEl) catalogEl.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="hover:text-[#d47217] transition-colors text-xs cursor-pointer"
-                >
-                  {cat}
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
-
-      </div>
 
       {/* Bottom Legal Bar */}
       <div className="border-t border-[#3F3F46] py-6 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#e3deda]">
           <div>
-            © 2026 Zona Audio Inc. Todos los derechos reservados. Instrumentos musicales de lujo contemporáneos y equipos de audio para estudio.
+            © 2026 Zona Audio Inc. Todos los derechos reservados. Instrumentos musicales de lujo contemporáneos y equipos de audio para tecnología.
           </div>
           <div className="flex items-center gap-4 text-[#e3deda]">
             <span>Términos del servicio</span>
