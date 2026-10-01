@@ -13,6 +13,7 @@ import {
 import { products as fallbackProducts, Product } from "@/data/products";
 import { usePlayerStore, useCartStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
+import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 
 interface HeroProps {
   onSelectCategory?: (category: string) => void;
@@ -37,6 +38,7 @@ export const Hero: React.FC<HeroProps> = ({
 
   const { playSample, currentProduct, isPlaying, stopSample } = usePlayerStore();
   const { addItem } = useCartStore();
+  const { rate } = useBcvRate();
 
   const activeProduct =
     heroProducts[currentSlide] || heroProducts[0] || products[0] || fallbackProducts[0];
@@ -117,10 +119,15 @@ export const Hero: React.FC<HeroProps> = ({
               </p>
 
               {/* Price & Savings */}
-              <div className="flex items-baseline gap-3">
+              <div className="flex flex-wrap items-baseline gap-3">
                 <span className="text-3xl sm:text-4xl font-black text-[#d47217] font-mono">
                   {formatProductPrice(activeProduct)}
                 </span>
+                {rate > 0 && (
+                  <span className="text-sm text-[#e3deda] font-mono">
+                    ≈ {formatVes(activeProduct.price * rate)}
+                  </span>
+                )}
                 {activeProduct.originalPrice && (
                   <span className="text-lg text-[#e3deda] line-through font-mono">
                     {formatProductPrice(activeProduct, activeProduct.originalPrice)}

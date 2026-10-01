@@ -13,12 +13,14 @@ import {
 import { useWishlistStore, useCartStore } from "@/store/useStore";
 import { Product } from "@/data/products";
 import { formatProductPrice } from "@/utils/formatPrice";
+import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 
 interface WishlistDrawerProps {
   onOpenQuickView: (product: Product) => void;
 }
 
 export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ onOpenQuickView }) => {
+  const { rate } = useBcvRate();
   const { items, isWishlistOpen, closeWishlist, removeItem } = useWishlistStore();
   const { addItem } = useCartStore();
 
@@ -105,6 +107,11 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ onOpenQuickView 
                     <div className="text-sm font-black text-[#d47217] font-mono">
                       {formatProductPrice(product)}
                     </div>
+                    {rate > 0 && (
+                      <div className="text-[10px] text-[#e3deda] font-mono">
+                        ≈ {formatVes(product.price * rate)}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 pt-1">
                       <button

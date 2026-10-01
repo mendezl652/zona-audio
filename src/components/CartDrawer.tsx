@@ -168,6 +168,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenCheckout }) => {
                     <div className="text-sm font-black text-[#d47217] font-mono">
                       {formatProductPrice(product, product.price * quantity, { minimumFractionDigits: 2 })}
                     </div>
+                    {rate > 0 && (
+                      <div className="text-[10px] text-[#e3deda] font-mono">
+                        ≈ {formatVes(product.price * quantity * rate)}
+                      </div>
+                    )}
 
                     {/* Quantity Stepper */}
                     <div className="flex items-center justify-between pt-1">

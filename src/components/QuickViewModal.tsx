@@ -283,6 +283,11 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
                   ) : (
                     <>
                       <ShoppingCart className="w-4 h-4" /> Agregar al carrito • {formatProductPrice(product, product.price * quantity)}
+                      {rate > 0 && (
+                        <span className="ml-2 text-[#e3deda] font-normal">
+                          ≈ {formatVes(product.price * quantity * rate)}
+                        </span>
+                      )}
                     </>
                   )}
                 </button>
