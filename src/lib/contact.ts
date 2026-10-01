@@ -15,3 +15,25 @@ export const WELCOME_MESSAGE =
 export function buildWhatsAppUrl(message: string = WELCOME_MESSAGE): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
+
+/** Redes sociales de Zona Audio. */
+export const SOCIAL_LINKS = [
+  {
+    id: "instagram",
+    label: "Instagram",
+    handle: "@zona_audio1",
+    href: "https://www.instagram.com/zona_audio1",
+  },
+  {
+    id: "tiktok",
+    label: "TikTok",
+    handle: "@zona.audio",
+    href: "https://www.tiktok.com/@zona.audio",
+  },
+  {
+    id: "whatsapp",
+    label: "WhatsApp",
+    handle: CONTACT_PHONE,
+    href: buildWhatsAppUrl(),
+  },
+] as const;
