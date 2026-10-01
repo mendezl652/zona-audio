@@ -56,4 +56,22 @@ Ejecuta en Supabase → **SQL Editor**, en este orden:
 ## Más información
 
 - Guía del panel: `docs/PANEL_ADMIN.md`
+- Despliegue en Cloudflare: `docs/DEPLOY_CLOUDFLARE.md`
 - Documentación de Next.js: [nextjs.org/docs](https://nextjs.org/docs)
+
+## Despliegue en producción
+
+El proyecto usa **OpenNext** para correr Next.js en Cloudflare Workers.
+
+```bash
+npx wrangler login      # autoriza tu cuenta (abre el navegador)
+npm run cf:deploy       # compila y publica
+```
+
+Las claves de Supabase se configuran como secretos, nunca en el código:
+
+```bash
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+```
+
+Ver `docs/DEPLOY_CLOUDFLARE.md` para el detalle completo.

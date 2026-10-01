@@ -1,0 +1,8 @@
+# Zona Audio · Cloudflare Workers
+# Copia este archivo como .dev.vars para pruebas locales con wrangler.
+# NO subas .dev.vars a Git.
+
+NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_CLAVE_ANON
+SUPABASE_SERVICE_ROLE_KEY=TU_CLAVE_SERVICE_ROLE
+ADMIN_EMAIL=tu-correo@ejemplo.com
