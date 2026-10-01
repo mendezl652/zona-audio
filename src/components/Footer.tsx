@@ -61,7 +61,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <p className="text-xs text-[#e3deda] leading-relaxed pr-6">
-            Zona Audio representa la excelencia en la selección de instrumentos musicales. Nos especializamos en guitarras eléctricas de calidad profesional, obras maestras acústicas, sintetizadores analógicos, micrófonos para transmisión y equipos auténticos de percusión latina.
+            Audio, instrumentos y tecnología para estudio, escenario y streaming. Micrófonos inalámbricos y de cintillo, percusión latina, teclados y los accesorios que necesitas, seleccionados uno por uno y con asesoría técnica antes de comprar.
           </p>
 
           <div className="space-y-2 pt-1 text-xs">
@@ -110,7 +110,7 @@ export const Footer: React.FC = () => {
       <div className="border-t border-[#3F3F46] py-6 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#e3deda]">
           <div>
-            © 2026 Zona Audio Inc. Todos los derechos reservados. Instrumentos musicales de lujo contemporáneos y equipos de audio para tecnología.
+            © 2026 Zona Audio Inc. Todos los derechos reservados.
           </div>
           <div className="flex items-center gap-4 text-[#e3deda]">
             <span>Términos del servicio</span>
