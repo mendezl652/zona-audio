@@ -16,6 +16,10 @@ export function buildWhatsAppUrl(message: string = WELCOME_MESSAGE): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
+/** Ubicación de la tienda en Google Maps. */
+export const STORE_LOCATION_URL =
+  "https://maps.app.goo.gl/w678LWiwTYqDuRsG7";
+
 /** Redes sociales de Zona Audio. */
 export const SOCIAL_LINKS = [
   {

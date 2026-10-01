@@ -7,7 +7,7 @@ import {
   MapPin,
   Clock
 } from "lucide-react";
-import { SOCIAL_LINKS } from "@/lib/contact";
+import { SOCIAL_LINKS, STORE_LOCATION_URL } from "@/lib/contact";
 
 function SocialIcon({ id }: { id: string }) {
   const shared = { fill: "currentColor", "aria-hidden": true } as const;
@@ -65,10 +65,15 @@ export const Footer: React.FC = () => {
           </p>
 
           <div className="space-y-2 pt-1 text-xs">
-            <div className="flex items-center gap-2 text-[#e3deda]">
-              <MapPin className="w-3.5 h-3.5 text-[#d47217] flex-shrink-0" />
+            <a
+              href={STORE_LOCATION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start gap-2 text-[#e3deda] transition hover:text-white"
+            >
+              <MapPin className="mt-0.5 w-3.5 h-3.5 text-[#d47217] flex-shrink-0" />
               <span>Somos tienda física en la Av. Andrés Bello, Edificio Centro Andrés Bello - Torre Oeste, piso 3, oficina 34-O</span>
-            </div>
+            </a>
             <div className="flex items-center gap-2 text-[#e3deda]">
               <Phone className="w-3.5 h-3.5 text-[#d47217] flex-shrink-0" />
               <span>Asistencia personalizada: 0414-2868519</span>
@@ -80,28 +85,67 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
-            Síguenos
-          </h4>
-          <div className="flex flex-wrap gap-2.5">
-            {SOCIAL_LINKS.map((social) => (
+        <div className="space-y-5">
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
+              Síguenos
+            </h4>
+            <div className="flex flex-wrap gap-2.5">
+              {SOCIAL_LINKS.map((social) => (
+                <a
+                  key={social.id}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`${social.label} · ${social.handle}`}
+                  aria-label={`${social.label} de Zona Audio`}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#3F3F46] bg-[#27272A] text-white transition hover:border-[#d47217] hover:bg-[#d47217] hover:text-white"
+                >
+                  <SocialIcon id={social.id} />
+                </a>
+              ))}
               <a
-                key={social.id}
-                href={social.href}
+                href={STORE_LOCATION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                title={`${social.label} · ${social.handle}`}
-                aria-label={`${social.label} de Zona Audio`}
+                title="Ver ubicación en Google Maps"
+                aria-label="Ver ubicación de Zona Audio en Google Maps"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#3F3F46] bg-[#27272A] text-white transition hover:border-[#d47217] hover:bg-[#d47217] hover:text-white"
               >
-                <SocialIcon id={social.id} />
+                <MapPin className="h-5 w-5" />
               </a>
-            ))}
+            </div>
+            <p className="text-[11px] text-[#e3deda]">
+              Escríbenos y síguenos para no perderte las próximas llegadas.
+            </p>
           </div>
-          <p className="text-[11px] text-[#e3deda]">
-            Escríbenos y síguenos para no perderte las próximas llegadas.
-          </p>
+
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
+              Ubicación
+            </h4>
+            <a
+              href={STORE_LOCATION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block rounded-xl border border-[#3F3F46] bg-[#27272A] p-3 transition hover:border-[#d47217]"
+            >
+              <span className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d47217]" />
+                <span>
+                  <span className="block text-[11px] font-bold text-white group-hover:text-[#d47217]">
+                    Av. Andrés Bello, Centro Andrés Bello
+                  </span>
+                  <span className="mt-0.5 block text-[11px] leading-relaxed text-[#e3deda]">
+                    Torre Oeste, piso 3, oficina 34-O · Caracas
+                  </span>
+                  <span className="mt-1.5 block text-[10px] font-bold uppercase tracking-wider text-[#d47217]">
+                    Ver en Google Maps
+                  </span>
+                </span>
+              </span>
+            </a>
+          </div>
         </div>
 
       </div>
