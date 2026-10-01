@@ -601,7 +601,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
                 <span className="text-xs font-bold font-mono text-[#d47217] shrink-0">
                   {shipping === 0
-                    ? "GRATIS"
+                    ? ""
                     : formatMoney(shipping, cartCurrency, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
