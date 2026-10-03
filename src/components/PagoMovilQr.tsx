@@ -17,8 +17,8 @@ export function PagoMovilQr() {
     <Image
       src="/pago-movil-qr.png"
       alt="Codigo QR de pago movil interbancario de Zona Audio"
-      width={1080}
-      height={1920}
+      width={1284}
+      height={2475}
       onError={() => setNoCargada(true)}
       className="w-full max-w-[280px] h-auto rounded-xl border border-[#d47217]/30 bg-white p-1"
     />
