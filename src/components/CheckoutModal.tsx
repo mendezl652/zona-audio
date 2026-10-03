@@ -27,6 +27,7 @@ import {
   type ProductCurrency,
 } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
+import { BncPaymentQr } from "@/components/BncPaymentQr";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -127,16 +128,16 @@ function getPaymentInstructions(
   switch (method) {
     case "pago_movil":
       return [
-        "Banco: Bancamiga (0172)",
-        "Cédula de identidad: V-30.235.425",
-        "Teléfono: 0414-2868519",
+        "Banco: 0191 · BNC (Banco Nacional de Crédito)",
+        "Cédula / RIF: J-508801903",
+        "Teléfono: 0414-2868526",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];
     case "transferencia":
       return [
-        "Banco: Bancamiga (0172)",
-        "Cédula de identidad: V-30.235.425",
-        "Teléfono de contacto: 0414-2868519",
+        "Banco: 0191 · BNC (Banco Nacional de Crédito)",
+        "Cédula / RIF: J-508801903",
+        "Teléfono de contacto: 0414-2868526",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];
     case "zelle":
@@ -659,6 +660,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   ))}
                 </ul>
               </div>
+
+              {(payment.method === "pago_movil" || payment.method === "transferencia") && (
+                <div className="rounded-2xl border border-[#d47217]/35 bg-[#27272A] p-4 space-y-4">
+                  <div className="text-center space-y-1">
+                    <h4 className="text-sm font-bold text-[#d47217]">
+                      Escanea el código QR Interbancario
+                    </h4>
+                    <p className="text-xs text-[#e3deda]">
+                      Abre la aplicación de tu banco, elige Pago Móvil o Código QR
+                      Interbancario y escanea este código para pagar.
+                    </p>
+                  </div>
+                  <div className="flex justify-center">
+                    <BncPaymentQr />
+                  </div>
+                </div>
+              )}
 
               {payment.method === "binance" && (
                 <div className="rounded-2xl border border-[#d47217]/35 bg-[#27272A] p-4 space-y-4">
