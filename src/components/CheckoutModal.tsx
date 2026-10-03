@@ -27,7 +27,6 @@ import {
   type ProductCurrency,
 } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
-import { PagoMovilQr } from "@/components/PagoMovilQr";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -660,23 +659,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   ))}
                 </ul>
               </div>
-
-              {(payment.method === "pago_movil" || payment.method === "transferencia") && (
-                <div className="rounded-2xl border border-[#d47217]/35 bg-[#27272A] p-4 space-y-4">
-                  <div className="text-center space-y-1">
-                    <h4 className="text-sm font-bold text-[#d47217]">
-                      Escanea y paga con BanescoMóvil
-                    </h4>
-                    <p className="text-xs text-[#e3deda]">
-                      Abre BanescoMóvil en tu teléfono, elige Escanear y Paga y
-                      apunta la cámara a este código.
-                    </p>
-                  </div>
-                  <div className="flex justify-center">
-                    <PagoMovilQr />
-                  </div>
-                </div>
-              )}
 
               {payment.method === "binance" && (
                 <div className="rounded-2xl border border-[#d47217]/35 bg-[#27272A] p-4 space-y-4">
