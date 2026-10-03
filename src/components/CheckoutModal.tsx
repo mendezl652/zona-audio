@@ -130,14 +130,14 @@ function getPaymentInstructions(
       return [
         "Banco: 0191 · BNC (Banco Nacional de Crédito)",
         "Cédula / RIF: J-508801903",
-        "Teléfono: 0414-2868526",
+        "Teléfono: 0414-2868519",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];
     case "transferencia":
       return [
         "Banco: 0191 · BNC (Banco Nacional de Crédito)",
         "Cédula / RIF: J-508801903",
-        "Teléfono de contacto: 0414-2868526",
+        "Teléfono de contacto: 0414-2868519",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];
     case "zelle":
