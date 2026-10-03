@@ -17,8 +17,8 @@ export function BncPaymentQr() {
     <Image
       src="/bnc-pago-movil-qr.png"
       alt="Codigo QR Interbancario de BNC para el pago movil de Zona Audio"
-      width={1000}
-      height={1800}
+      width={755}
+      height={780}
       onError={() => setNoCargada(true)}
       className="w-full max-w-[260px] h-auto rounded-xl border border-[#d47217]/30 bg-white p-1"
     />
