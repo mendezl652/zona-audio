@@ -129,14 +129,14 @@ function getPaymentInstructions(
     case "pago_movil":
       return [
         "Banco: Banesco",
-        "Identificación: V028490599",
+        "Identificación: V28490599",
         "Teléfono: 0412-603-5892",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];
     case "transferencia":
       return [
         "Banco: Banesco",
-        "Identificación: V028490599",
+        "Identificación: V28490599",
         "Teléfono: 0412-603-5892",
         `Monto exacto a transferir: ${totalVes ? formatVes(totalVes) : "Pendiente de tasa BCV"}`,
       ];

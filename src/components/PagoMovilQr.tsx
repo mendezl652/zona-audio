@@ -17,10 +17,13 @@ export function PagoMovilQr() {
     <Image
       src="/pago-movil-qr.png"
       alt="Codigo QR de pago movil interbancario de Zona Audio"
-      width={1284}
-      height={2475}
+      width={1195}
+      height={1200}
+      // Sin optimizacion: Next convierte a WebP/AVIF y redimensiona,
+      // lo cual rompe la lectura del codigo QR.
+      unoptimized
       onError={() => setNoCargada(true)}
-      className="w-full max-w-[280px] h-auto rounded-xl border border-[#d47217]/30 bg-white p-1"
+      className="w-full max-w-[300px] h-auto rounded-xl bg-white p-1"
     />
   );
 }
