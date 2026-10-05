@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Volume2,
   Heart,
@@ -14,6 +15,7 @@ import { Product } from "@/data/products";
 import { useCartStore, useWishlistStore, usePlayerStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
+import { productPath } from "@/lib/productSlug";
 
 interface ProductCardProps {
   product: Product;
@@ -332,12 +334,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         </div>
 
-        <h3
-          onClick={() => onOpenQuickView(product)}
-          className="text-[13px] sm:text-sm font-bold text-[#FFFFFF] group-hover:text-[#d47217] transition-colors line-clamp-2 sm:line-clamp-1 cursor-pointer"
+        <Link
+          href={productPath(product)}
+          className="block text-[13px] sm:text-sm font-bold text-[#FFFFFF] group-hover:text-[#d47217] transition-colors line-clamp-2 sm:line-clamp-1"
         >
           {product.name}
-        </h3>
+        </Link>
 
         <p className="hidden sm:block text-xs text-[#e3deda] line-clamp-1">
           {product.subcategory} • {Object.values(product.specs).filter(Boolean)[0]}

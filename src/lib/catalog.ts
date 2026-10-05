@@ -6,6 +6,7 @@ import {
   type Product,
 } from "@/data/products";
 import { getSupabaseEnv } from "@/lib/supabase/server";
+import { productSlug } from "@/lib/productSlug";
 
 export type CatalogSnapshot = {
   products: Product[];
@@ -94,6 +95,18 @@ export function mapProductRow(row: Row): Product {
     features: asStringArray(row.features),
     soundDemo: asSoundDemo(row.sound_demo),
   };
+}
+
+/**
+ * Busca un producto por su slug de URL.
+ * Usa el catalogo publico para respetar la regla de "solo publicados".
+ */
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const { products } = await getPublicCatalog();
+  const objetivo = slug.toLowerCase();
+  return (
+    products.find((product) => productSlug(product) === objetivo) ?? null
+  );
 }
 
 export function getFallbackCatalog(): CatalogSnapshot {
