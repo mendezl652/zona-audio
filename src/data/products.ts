@@ -4,6 +4,15 @@ export interface SoundDemo {
   notesDescription: string;
 }
 
+/** Una opcion concreta de un producto: medida, pack, color, etc. */
+export interface ProductVariant {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  isActive: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -28,6 +37,12 @@ export interface Product {
   specs: Record<string, string | undefined>;
   features: string[];
   soundDemo: SoundDemo;
+  /** Opciones del producto. Si tiene lista, el cliente debe elegir una. */
+  variants?: ProductVariant[];
+  /** Datos de la variante elegida, para mostrarlos en el carrito. */
+  variantId?: string;
+  variantLabel?: string;
+  baseProductId?: string;
 }
 
 import productsData from "../../data/products.json";

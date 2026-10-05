@@ -30,6 +30,7 @@ import type { AdminCatalogSnapshot, AdminProduct } from "@/lib/catalog";
 import type { SavedInvoice } from "@/lib/admin/invoices";
 import type { SaleRecord } from "@/lib/admin/sales";
 import { ProductPreviewCard } from "@/components/admin/ProductPreviewCard";
+import { VariantsEditor } from "@/components/admin/VariantsEditor";
 
 type AdminTab = "products" | "categories" | "brands" | "invoices" | "finance";
 
@@ -1278,6 +1279,13 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                     valor después. Puedes copiar y pegar fichas técnicas tal cual, el sistema las
                     ordena solo.
                   </p>
+                </div>
+                <div className="space-y-2">
+                  <VariantsEditor
+                    productId={form.id}
+                    variantes={selectedProduct?.variants ?? []}
+                    onChanged={loadCatalog}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className={labelClass} htmlFor="product-image-fit">Ajuste de imagen</label>

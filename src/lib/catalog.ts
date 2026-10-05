@@ -58,6 +58,45 @@ function asSpecs(value: unknown): Record<string, string | undefined> {
   );
 }
 
+function asVariants(
+  rows: Row[],
+  productId: string,
+  incluirInactivas: boolean
+): Product["variants"] {
+  const delProducto = rows.filter((row) => asString(row.product_id) === productId);
+  if (delProducto.length === 0) return undefined;
+  return delProducto
+    .filter((row) => incluirInactivas || asBoolean(row.is_active))
+    .sort((a, b) => asNumber(a.sort_order) - asNumber(b.sort_order))
+    .map((row) => ({
+      id: asString(row.id),
+      name: asString(row.name, "Variante"),
+      price: asNumber(row.price),
+      stock: Math.round(asNumber(row.stock)),
+      isActive: asBoolean(row.is_active),
+    }));
+}
+
+/** Adjunta las variantes de cada producto del catalogo. */
+async function attachVariants<T extends { id: string }>(
+  productos: T[],
+  fetchVariants: () => Promise<Row[]>,
+  incluirInactivas = false
+): Promise<(T & { variants?: Product["variants"] })[]> {
+  if (productos.length === 0) return productos;
+  let filas: Row[] = [];
+  try {
+    filas = await fetchVariants();
+  } catch {
+    return productos;
+  }
+  if (filas.length === 0) return productos;
+  return productos.map((producto) => ({
+    ...producto,
+    variants: asVariants(filas, producto.id, incluirInactivas),
+  }));
+}
+
 function asSoundDemo(value: unknown): Product["soundDemo"] {
   const demo = (value && typeof value === "object" ? value : {}) as Row;
   return {
@@ -125,15 +164,21 @@ export async function getPublicCatalog(): Promise<CatalogSnapshot> {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const [productResult, categoryResult, brandResult] = await Promise.all([
-    supabase
-      .from("products")
-      .select("*")
-      .eq("is_published", true)
-      .order("created_at", { ascending: false }),
-    supabase.from("categories").select("name").order("name"),
-    supabase.from("brands").select("name").order("name"),
-  ]);
+  const [productResult, categoryResult, brandResult, variantResult] =
+    await Promise.all([
+      supabase
+        .from("products")
+        .select("*")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false }),
+      supabase.from("categories").select("name").order("name"),
+      supabase.from("brands").select("name").order("name"),
+      supabase
+        .from("product_variants")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order"),
+    ]);
 
   if (productResult.error || categoryResult.error || brandResult.error) {
     console.error("No se pudo leer el catálogo de Supabase:", {
@@ -151,10 +196,13 @@ export async function getPublicCatalog(): Promise<CatalogSnapshot> {
     .map((row) => asString((row as Row).name))
     .filter(Boolean);
 
+  const base = (productResult.data ?? []).map((row) => mapProductRow(row as Row));
+  const productos = await attachVariants(base, async () =>
+    (variantResult.data ?? []) as Row[]
+  );
+
   return {
-    products: (productResult.data ?? []).map((row) =>
-      mapProductRow(row as Row)
-    ),
+    products: productos,
     categories: ["Todos", ...categoryNames],
     brands: brandNames,
   };
@@ -169,21 +217,34 @@ export async function getAdminCatalog(): Promise<AdminCatalogSnapshot> {
   const supabase = createClient(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  const [productResult, categoryResult, brandResult] = await Promise.all([
-    supabase.from("products").select("*").order("created_at", { ascending: false }),
-    supabase.from("categories").select("*").order("name"),
-    supabase.from("brands").select("*").order("name"),
-  ]);
+  const [productResult, categoryResult, brandResult, variantResult] =
+    await Promise.all([
+      supabase.from("products").select("*").order("created_at", { ascending: false }),
+      supabase.from("categories").select("*").order("name"),
+      supabase.from("brands").select("*").order("name"),
+      supabase
+        .from("product_variants")
+        .select("*")
+        .order("sort_order"),
+    ]);
 
   if (productResult.error) throw new Error(productResult.error.message);
   if (categoryResult.error) throw new Error(categoryResult.error.message);
   if (brandResult.error) throw new Error(brandResult.error.message);
 
+  // El panel ve tambien las variantes inactivas para poder reactivarlas.
+  const base = (productResult.data ?? []).map((row) => ({
+    ...mapProductRow(row as Row),
+    isPublished: (row as Row).is_published !== false,
+  }));
+  const productos = await attachVariants(
+    base,
+    async () => (variantResult.data ?? []) as Row[],
+    true
+  );
+
   return {
-    products: (productResult.data ?? []).map((row) => ({
-      ...mapProductRow(row as Row),
-      isPublished: (row as Row).is_published !== false,
-    })),
+    products: productos,
     categories: (categoryResult.data ?? []).map((row) => ({
       id: asString((row as Row).id),
       name: asString((row as Row).name),

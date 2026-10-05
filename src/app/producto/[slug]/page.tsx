@@ -6,6 +6,7 @@ import { getProductBySlug, getPublicCatalog } from "@/lib/catalog";
 import { productPath } from "@/lib/productSlug";
 import { BcvRateProvider } from "@/components/BcvRateProvider";
 import { ProductActions } from "@/components/ProductActions";
+import { VariantPicker } from "@/components/VariantPicker";
 import { ContactBlock } from "@/components/ContactBlock";
 
 const SITIO = "https://zonaaudio.com";
@@ -209,7 +210,11 @@ export default async function PaginaProducto({ params }: Params) {
                 {product.description}
               </p>
 
-              <ProductActions product={product} />
+              {product.variants && product.variants.length > 0 ? (
+                <VariantPicker product={product} />
+              ) : (
+                <ProductActions product={product} />
+              )}
 
               {specs.length > 0 && (
                 <div className="space-y-2">

@@ -17,6 +17,7 @@ import { Product } from "@/data/products";
 import { useCartStore, useWishlistStore, usePlayerStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
+import { productWithVariant } from "@/components/VariantPicker";
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -44,6 +45,7 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
   const inWishlist = isInWishlist(product.id);
   const isAudioPlaying = isPlaying && currentProduct?.id === product.id;
   const isOutOfStock = product.stock <= 0;
+  const tieneVariantes = (product.variants ?? []).length > 0;
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
@@ -262,35 +264,39 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
                   </button>
                 </div>
 
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isOutOfStock}
-                  className={`flex-1 py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl flex items-center justify-center gap-2 ${
-                    isOutOfStock
-                      ? "bg-[#3F3F46] text-[#e3deda] cursor-not-allowed"
-                      : "cursor-pointer " +
-                        (justAdded
-                          ? "bg-[#d47217] text-white font-black"
-                          : "bg-gradient-to-r from-[#d47217] via-[#d47217] to-[#d47217] hover:opacity-95 text-white shadow-[#d47217]/25")
-                  }`}
-                >
-                  {isOutOfStock ? (
-                    "Agotado"
-                  ) : justAdded ? (
-                    <>
-                      <Check className="w-4 h-4" /> ¡Agregado al carrito de Zona Audio!
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" /> Agregar al carrito • {formatProductPrice(product, product.price * quantity)}
-                      {rate > 0 && (
-                        <span className="ml-2 text-[#e3deda] font-normal">
-                          ≈ {formatVes(product.price * quantity * rate)}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </button>
+                {tieneVariantes ? (
+                  <VariantPickerInline product={product} />
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isOutOfStock}
+                    className={`flex-1 py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl flex items-center justify-center gap-2 ${
+                      isOutOfStock
+                        ? "bg-[#3F3F46] text-[#e3deda] cursor-not-allowed"
+                        : "cursor-pointer " +
+                          (justAdded
+                            ? "bg-[#d47217] text-white font-black"
+                            : "bg-gradient-to-r from-[#d47217] via-[#d47217] to-[#d47217] hover:opacity-95 text-white shadow-[#d47217]/25")
+                    }`}
+                  >
+                    {isOutOfStock ? (
+                      "Agotado"
+                    ) : justAdded ? (
+                      <>
+                        <Check className="w-4 h-4" /> ¡Agregado al carrito de Zona Audio!
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4" /> Agregar al carrito • {formatProductPrice(product, product.price * quantity)}
+                        {rate > 0 && (
+                          <span className="ml-2 text-[#e3deda] font-normal">
+                            ≈ {formatVes(product.price * quantity * rate)}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                )}
 
                 <button
                   onClick={() => toggleWishlist(product)}
@@ -312,6 +318,84 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
     </div>
   );
 };
+
+/** Selector de variantes dentro de la vista rapida, sin salir del modal. */
+function VariantPickerInline({ product }: { product: Product }) {
+  const variantes = product.variants ?? [];
+  const [elegida, setElegida] = useState(variantes[0]?.id ?? "");
+  const { addItem } = useCartStore();
+  const [agregado, setAgregado] = useState(false);
+
+  const seleccionada = variantes.find((v) => v.id === elegida) ?? variantes[0];
+  const sinStock = !seleccionada || seleccionada.stock <= 0;
+
+  const agregar = () => {
+    if (!seleccionada) return;
+    addItem(productWithVariant(product, seleccionada), 1);
+    setAgregado(true);
+    window.setTimeout(() => setAgregado(false), 1800);
+  };
+
+  return (
+    <div className="flex-1 space-y-2">
+      <div className="grid gap-1.5">
+        {variantes.map((variante) => {
+          const activa = variante.id === elegida;
+          const agotada = variante.stock <= 0;
+          return (
+            <button
+              key={variante.id}
+              type="button"
+              onClick={() => setElegida(variante.id)}
+              aria-pressed={activa}
+              className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition ${
+                activa
+                  ? "border-[#d47217] bg-[#d47217]/10"
+                  : "border-[#52525B] bg-[#121212] hover:border-[#d47217]/60"
+              }`}
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-xs font-bold text-white">
+                  {variante.name}
+                </span>
+                <span className="block text-[10px] text-[#e3deda]">
+                  {agotada ? "Agotado" : `${variante.stock} disponibles`}
+                </span>
+              </span>
+              <span className="shrink-0 font-mono text-xs font-black text-[#d47217]">
+                ${variante.price.toFixed(2)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <button
+        onClick={agregar}
+        disabled={sinStock}
+        className={`w-full py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl flex items-center justify-center gap-2 ${
+          sinStock
+            ? "bg-[#3F3F46] text-[#e3deda] cursor-not-allowed"
+            : agregado
+              ? "bg-[#d47217] text-white"
+              : "bg-gradient-to-r from-[#d47217] to-[#d47217] hover:opacity-95 text-white shadow-[#d47217]/25"
+        }`}
+      >
+        {sinStock ? (
+          "Agotado"
+        ) : agregado ? (
+          <>
+            <Check className="w-4 h-4" /> ¡Agregado!
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="w-4 h-4" /> Agregar
+            {seleccionada ? ` • ${formatProductPrice(product, seleccionada.price)}` : ""}
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
 
 export const QuickViewModal: React.FC<QuickViewModalProps> = ({
   product,
