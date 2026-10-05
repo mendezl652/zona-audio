@@ -15,12 +15,12 @@ export function slugify(texto: string): string {
     .slice(0, 80);
 }
 
-/** Slug de un producto, sin depender del servidor. */
+/**
+ * Slug de un producto. Usa solo el nombre para que la URL sea limpia y
+ * facil de compartir: /producto/microfonos-inalambricos-shure-sn-808
+ */
 export function productSlug(product: Pick<Product, "name" | "id">): string {
-  const base = slugify(product.name);
-  // Si dos productos comparten nombre, se differentiate con el inicio del id.
-  const sufijo = slugify(product.id).slice(0, 6);
-  return sufijo ? `${base}-${sufijo}` : base;
+  return slugify(product.name);
 }
 
 /** Rutas publicas de producto que Google puede indexar. */
