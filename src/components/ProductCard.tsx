@@ -16,6 +16,7 @@ import { useCartStore, useWishlistStore, usePlayerStore } from "@/store/useStore
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 import { productPath } from "@/lib/productSlug";
+import { CardVariantPicker } from "@/components/CardVariantPicker";
 
 interface ProductCardProps {
   product: Product;
@@ -37,6 +38,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const isAudioPlaying = isPlaying && currentProduct?.id === product.id;
   const inWishlist = isInWishlist(product.id);
   const isOutOfStock = product.stock <= 0;
+  const tieneVariantes = (product.variants ?? []).length > 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -347,6 +349,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Pricing and Cart CTA */}
         <div className="pt-2 flex items-center justify-between gap-1">
+          {tieneVariantes ? (
+            <div className="w-full">
+              <CardVariantPicker product={product} />
+            </div>
+          ) : (
+            <>
           <div className="min-w-0">
             <div className="text-base sm:text-lg font-black text-[#d47217] font-mono leading-none">
               {formatProductPrice(product)}
@@ -384,6 +392,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <ShoppingCart className="w-4 h-4" />
             )}
           </button>
+            </>
+          )}
         </div>
       </div>
     </div>
