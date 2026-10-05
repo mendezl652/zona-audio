@@ -6,6 +6,7 @@ import { getProductBySlug, getPublicCatalog } from "@/lib/catalog";
 import { productPath } from "@/lib/productSlug";
 import { BcvRateProvider } from "@/components/BcvRateProvider";
 import { ProductActions } from "@/components/ProductActions";
+import { ProductGallery } from "@/components/ProductGallery";
 import { VariantPicker } from "@/components/VariantPicker";
 import { ContactBlock } from "@/components/ContactBlock";
 
@@ -112,60 +113,12 @@ export default async function PaginaProducto({ params }: Params) {
           </nav>
 
           <div className="grid gap-8 lg:grid-cols-2">
-            <div className="space-y-3">
-              <div
-                className={`relative aspect-square overflow-hidden rounded-3xl border border-[#3F3F46] ${
-                  product.imageFit === "contain" ? "bg-[#E5E7EB]" : "bg-[#27272A]"
-                }`}
-              >
-                {product.images?.[0] ? (
-                  <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className={
-                      product.imageFit === "contain"
-                        ? "object-contain p-4"
-                        : "object-cover"
-                    }
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-[#e3deda]">
-                    Sin imagen
-                  </div>
-                )}
-                {agotado && (
-                  <span className="absolute left-4 top-4 rounded-lg bg-[#e3deda] px-3 py-1 text-xs font-black uppercase text-[#121212]">
-                    Agotado
-                  </span>
-                )}
-              </div>
-
-              {product.images && product.images.length > 1 && (
-                <div className="flex flex-wrap gap-2">
-                  {product.images.slice(1).map((img) => (
-                    <div
-                      key={img}
-                      className="relative h-20 w-20 overflow-hidden rounded-xl border border-[#3F3F46]"
-                    >
-                      <Image
-                        src={img}
-                        alt={`${product.name} — vista adicional`}
-                        fill
-                        sizes="80px"
-                        className={
-                          product.imageFit === "contain"
-                            ? "object-contain bg-[#E5E7EB]"
-                            : "object-cover"
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ProductGallery
+              images={product.images ?? []}
+              alt={product.name}
+              imageFit={product.imageFit}
+              agotado={agotado}
+            />
 
             <div className="space-y-5">
               <div>
