@@ -4,6 +4,10 @@ import { productPath } from "@/lib/productSlug";
 
 const SITIO = "https://zonaaudio.com";
 
+// Se genera en cada peticion para que los productos nuevos del panel
+// aparezcan de inmediato, sin necesidad de redesplegar.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ahora = new Date();
 
