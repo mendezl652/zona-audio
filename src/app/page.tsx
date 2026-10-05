@@ -16,6 +16,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { BcvRateProvider } from "@/components/BcvRateProvider";
 import { DiscountBanner } from "@/components/DiscountBanner";
 import { categories as fallbackCategories, products, Product } from "@/data/products";
+import { StructuredData } from "@/components/StructuredData";
 
 const initialFilters: FilterState = {
   category: "Todos",
@@ -140,6 +141,7 @@ export default function Home() {
 
   return (
     <BcvRateProvider>
+      <StructuredData productos={catalogProducts} />
       <div className="min-h-screen flex flex-col bg-[#121212] text-[#FFFFFF] selection:bg-[#d47217] selection:text-white">
       {/* 1. Header (Sticky & Glassmorphic) */}
       <Header
