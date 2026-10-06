@@ -39,9 +39,9 @@ export const metadata: Metadata = {
       "Micrófonos inalámbricos, percusión latina, teclados y tecnología de audio para estudio, escenario y streaming. Tienda física en Caracas. 20% de descuento en pagos en divisas.",
     images: [
       {
-        url: "/zona-audio-logo.png",
-        width: 757,
-        height: 187,
+        url: "/icono-zona-audio.png",
+        width: 512,
+        height: 512,
         alt: "Zona Audio - Audio, instrumentos y tecnología",
       },
     ],
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     title: "Zona Audio | Equipos de audio en Caracas",
     description:
       "Micrófonos inalámbricos, instrumentos musicales y tecnología para estudio y escenario.",
-    images: ["/zona-audio-logo.png"],
+    images: ["/icono-zona-audio.png"],
   },
   robots: {
     index: true,
@@ -59,6 +59,16 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
   category: "shopping",
+  // El favicon en src/app se genera con: node scripts/generar-iconos.mjs
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "256x256" },
+      { url: "/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({

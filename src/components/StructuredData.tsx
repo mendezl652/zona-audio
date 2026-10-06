@@ -76,8 +76,9 @@ export function StructuredData({ productos }: { productos: Product[] }) {
         description:
           "Equipos de audio, instrumentos musicales y tecnología para estudio, escenario y streaming en Caracas, Venezuela.",
         url: SITIO,
-        logo: `${SITIO}/zona-audio-logo.png`,
-        image: `${SITIO}/zona-audio-logo.png`,
+        // Google prefiere un logo cuadrado para los datos estructurados de tienda.
+        logo: `${SITIO}/icono-zona-audio.png`,
+        image: `${SITIO}/icono-zona-audio.png`,
         telephone: "+58 414-2868519",
         email: "mendezl652@gmail.com",
         priceRange: "$16 - $375",
