@@ -9,6 +9,7 @@ import { ProductActions } from "@/components/ProductActions";
 import { ProductGallery } from "@/components/ProductGallery";
 import { VariantPicker } from "@/components/VariantPicker";
 import { ContactBlock } from "@/components/ContactBlock";
+import { DiscountBanner } from "@/components/DiscountBanner";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 const SITIO = "https://zonaaudio.com";
@@ -112,6 +113,8 @@ export default async function PaginaProducto({ params }: Params) {
             <span className="mx-2">/</span>
             <span className="text-white">{product.name}</span>
           </nav>
+
+          <DiscountBanner />
 
           <div className="grid gap-8 lg:grid-cols-2">
             <ProductGallery
