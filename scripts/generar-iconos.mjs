@@ -4,7 +4,7 @@
 //
 // Tu logo horizontal (757x187) no sirve como favicon: al reducirlo a los
 // 16-32 px que usa Google las letras se vuelven ilegibles. Aqui se compone
-// una "ZA" sobre fondo naranja (#d47217), que si se lee a cualquier tamano.
+// una "ZA" con fondo blanco y letras negras, que si se lee a cualquier tamano.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -14,19 +14,19 @@ const RAIZ = process.cwd();
 const PUBLICO = path.join(RAIZ, "public");
 const APP = path.join(RAIZ, "src", "app");
 
-// Paleta de Zona Audio
-const NARANJA = "#d47217";
-const NEGRO = "#121212";
+// Fondo blanco y letras negras.
+const FONDO = "#FFFFFF";
+const LETRA = "#121212";
 
-/** Cuadricula con fondo naranja, esquinas redondeadas y la sigla ZA. */
-function iconoZA(tam, { relleno = 0.66, colorLetra = NEGRO } = {}) {
+/** Cuadricula con fondo blanco, esquinas redondeadas y la sigla ZA. */
+function iconoZA(tam, { relleno = 0.66, colorLetra = LETRA } = {}) {
   const radio = Math.round(tam * 0.22);
   const fuente = Math.round(tam * relleno);
 
   return sharp(
     Buffer.from(
       `<svg width="${tam}" height="${tam}" xmlns="http://www.w3.org/2000/svg">
-         <rect x="0" y="0" width="${tam}" height="${tam}" rx="${radio}" ry="${radio}" fill="${NARANJA}"/>
+         <rect x="0" y="0" width="${tam}" height="${tam}" rx="${radio}" ry="${radio}" fill="${FONDO}"/>
          <text x="${tam / 2}" y="${tam / 2 + fuente * 0.02}"
                font-family="Arial Black, Arial, Helvetica, sans-serif"
                font-size="${fuente}" font-weight="900"
@@ -48,10 +48,10 @@ function iconoApple() {
   return sharp(
     Buffer.from(
       `<svg width="${tam}" height="${tam}" xmlns="http://www.w3.org/2000/svg">
-         <rect x="0" y="0" width="${tam}" height="${tam}" fill="${NARANJA}"/>
+         <rect x="0" y="0" width="${tam}" height="${tam}" fill="${FONDO}"/>
          <text x="${tam / 2}" y="${tam / 2}" font-family="Arial Black, Arial, Helvetica, sans-serif"
                font-size="${fuente}" font-weight="900" letter-spacing="${-fuente * 0.04}"
-               text-anchor="middle" dominant-baseline="central" fill="${NEGRO}">ZA</text>
+               text-anchor="middle" dominant-baseline="central" fill="${LETRA}">ZA</text>
        </svg>`
     )
   )
@@ -67,10 +67,10 @@ function iconoCompartir() {
   return sharp(
     Buffer.from(
       `<svg width="${tam}" height="${tam}" xmlns="http://www.w3.org/2000/svg">
-         <rect x="0" y="0" width="${tam}" height="${tam}" fill="${NARANJA}"/>
+         <rect x="0" y="0" width="${tam}" height="${tam}" fill="${FONDO}"/>
          <text x="${tam / 2}" y="${tam / 2}" font-family="Arial Black, Arial, Helvetica, sans-serif"
                font-size="${fuente}" font-weight="900" letter-spacing="${-fuente * 0.04}"
-               text-anchor="middle" dominant-baseline="central" fill="${NEGRO}">ZA</text>
+               text-anchor="middle" dominant-baseline="central" fill="${LETRA}">ZA</text>
        </svg>`
     )
   )
