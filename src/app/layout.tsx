@@ -82,18 +82,36 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark h-full antialiased">
       <head>
-        {/* El pixel de Meta carga en el head para no perder la visita. */}
+        {/*
+          Pixel de Meta. Va aqui, en el HTML del servidor, y no en un
+          componente de React: Meta verifica el sitio con rastreadores que no
+          ejecutan JavaScript, y si el codigo se inyecta desde el navegador
+          esos rastreadores no lo ven y el pixel aparece como roto.
+        */}
         {META_PIXEL_ID && (
-          <noscript>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              height="1"
-              width="1"
-              style={{ display: "none" }}
-              alt=""
-              src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+(window,document,'script','https://connect.facebook.net/es_LA/fbevents.js');
+fbq('init','${META_PIXEL_ID}');fbq('track','PageView');`,
+              }}
             />
-          </noscript>
+            <noscript>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                height="1"
+                width="1"
+                style={{ display: "none" }}
+                alt=""
+                src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+              />
+            </noscript>
+          </>
         )}
       </head>
       <body className="min-h-full flex flex-col bg-[#121212] text-[#FFFFFF]">
