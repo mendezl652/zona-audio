@@ -4,7 +4,7 @@ export const DiscountBanner: React.FC = () => {
   return (
     <aside
       aria-label="Oferta de descuento"
-      className="sticky top-20 z-30 mb-6 w-fit max-w-full mx-auto"
+      className="mb-6 w-fit max-w-full mx-auto"
     >
       <div className="flex items-center gap-2.5 rounded-full border border-[#d47217]/40 bg-[#1c1712]/95 py-2 pl-2 pr-4 shadow-lg shadow-[#d47217]/10 backdrop-blur-md sm:gap-3 sm:py-2.5 sm:pl-2.5 sm:pr-5">
         {/* Distintivo: se lee de un vistazo sin agrandar el texto */}
