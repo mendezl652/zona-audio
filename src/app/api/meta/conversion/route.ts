@@ -10,7 +10,12 @@ import { META_SITE_ORIGIN } from "@/lib/metaPixel";
 
 export const dynamic = "force-dynamic";
 
-const ENDPOINT = `https://graph.facebook.com/v21.0/${process.env.NEXT_PUBLIC_META_PIXEL_ID}/events`;
+// El id del pixel es publico (esta en el codigo de la pagina). Se deja el
+// valor por defecto para que la ruta funcione aunque la variable de entorno
+// no llegue al Worker.
+const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "1399377912264569";
+
+const ENDPOINT = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events`;
 
 type Entrada = {
   event_name?: string;

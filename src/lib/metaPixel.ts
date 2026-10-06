@@ -6,8 +6,16 @@
 // El token de la API de conversiones SI es una credencial privada. Ese
 // nunca va aqui ni en el codigo: vive en el servidor (ver src/app/api/meta/conversion).
 
-/** Id del pixel, expuesto al navegador. */
-export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "";
+/**
+ * Id del pixel, expuesto al navegador.
+ *
+ * Este valor es publico por diseno: Meta lo pide pegarlo tal cual en el
+ * codigo de la pagina. Se deja como valor por defecto para que funcione
+ * aunque la variable de entorno no este configurada en Cloudflare, donde
+ * las NEXT_PUBLIC_ se congelan al compilar.
+ */
+export const META_PIXEL_ID =
+  process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "1399377912264569";
 
 /** Origen del sitio, usado para validar los envios del servidor. */
 export const META_SITE_ORIGIN = "https://zonaaudio.com";
