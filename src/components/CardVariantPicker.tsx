@@ -37,7 +37,7 @@ export function CardVariantPicker({ product }: Props) {
   };
 
   return (
-    <div className="space-y-2 border-t border-[#3F3F46] pt-2.5">
+    <div className="relative z-10 space-y-2 border-t border-[#3F3F46] pt-2.5">
       <div className="flex flex-wrap gap-1.5">
         {variantes.map((variante) => {
           const activa = variante.id === elegida;
@@ -48,7 +48,7 @@ export function CardVariantPicker({ product }: Props) {
               type="button"
               onClick={() => setElegida(variante.id)}
               aria-pressed={activa}
-              className={`rounded-lg border px-2 py-1 text-[10px] font-bold transition ${
+              className={`relative z-10 rounded-lg border px-2 py-1 text-[10px] font-bold transition ${
                 sinUnidades
                   ? "border-[#3F3F46] text-[#e3deda] line-through opacity-60"
                   : activa
@@ -62,7 +62,7 @@ export function CardVariantPicker({ product }: Props) {
         })}
       </div>
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="relative z-10 flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="text-sm font-black text-[#d47217] font-mono leading-none">
             {formatProductPrice(product, precio)}
@@ -90,7 +90,7 @@ export function CardVariantPicker({ product }: Props) {
               ? `${product.name} sin opciones disponibles`
               : `Agregar ${product.name} ${seleccionada?.name ?? ""} al carrito`
           }
-          className={`p-2 sm:p-2.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center shrink-0 ${
+          className={`relative z-10 p-2 sm:p-2.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center shrink-0 ${
             sinStock || agotada
               ? "bg-[#3F3F46] text-[#e3deda] cursor-not-allowed"
               : "active:scale-95 cursor-pointer " +
