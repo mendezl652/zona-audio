@@ -17,7 +17,7 @@ export const WhatsAppButton: React.FC<Props> = ({ message }) => {
     : "¡Bienvenido a Zona Audio! ¿En qué podemos ayudarte?";
 
   return (
-    <div className="fixed bottom-4 right-4 z-[60] sm:bottom-6 sm:right-6">
+    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-[60] sm:bottom-6 sm:right-6">
       <div className="relative flex items-center justify-center">
         <span className="pointer-events-none absolute -inset-1 rounded-full bg-[#25D366]/30 motion-safe:animate-ping" />
         <span className="pointer-events-none absolute -inset-2 rounded-full bg-[#25D366]/15 motion-safe:animate-ping [animation-delay:1.5s]" />

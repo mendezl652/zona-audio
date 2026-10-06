@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
-  Volume2,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -11,7 +10,7 @@ import {
   Radio
 } from "lucide-react";
 import { products as fallbackProducts, Product } from "@/data/products";
-import { usePlayerStore, useCartStore } from "@/store/useStore";
+import { useCartStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 
@@ -36,7 +35,6 @@ export const Hero: React.FC<HeroProps> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeChip, setActiveChip] = useState("Todo el equipo");
 
-  const { playSample, currentProduct, isPlaying, stopSample } = usePlayerStore();
   const { addItem } = useCartStore();
   const { rate } = useBcvRate();
 
@@ -68,8 +66,6 @@ export const Hero: React.FC<HeroProps> = ({
       catalogElement.scrollIntoView({ behavior: "smooth" });
     }
   };
-
-  const isCurrentAudioPlaying = isPlaying && currentProduct?.id === activeProduct.id;
 
   return (
     <section className="relative overflow-hidden pt-6 pb-12 px-4 lg:px-8 border-b border-[#d47217]/10">
@@ -150,55 +146,6 @@ export const Hero: React.FC<HeroProps> = ({
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
-                {activeProduct.hasAudioPreview !== false && (
-                  <>
-                    {/* Listen Sound Sample Button with Warm Waveform */}
-                    <button
-                      onClick={() => {
-                        if (isCurrentAudioPlaying) {
-                          stopSample();
-                        } else {
-                          playSample(activeProduct);
-                        }
-                      }}
-                      className={`px-5 py-3.5 rounded-2xl text-sm font-bold border transition-all flex items-center gap-3 cursor-pointer ${
-                        isCurrentAudioPlaying
-                          ? "bg-[#d47217]/25 text-[#d47217] border-[#d47217] shadow-lg shadow-[#d47217]/20"
-                          : "bg-[#27272A] hover:bg-[#27272A] text-[#FFFFFF] border-[#52525B] hover:border-[#d47217]/60"
-                      }`}
-                    >
-                      <Volume2 className={`w-4 h-4 ${isCurrentAudioPlaying ? "animate-bounce text-[#d47217]" : "text-[#d47217]"}`} />
-                      <span>
-                        {isCurrentAudioPlaying ? "Reproduciendo muestra en vivo..." : "Escuchar demo de sonido"}
-                      </span>
-
-                      {/* Warm Frequency Equalizer Visualizer Bars */}
-                      <div className="flex items-end gap-1 h-4">
-                        <span
-                          className={`w-1 rounded-full bg-[#d47217] ${
-                            isCurrentAudioPlaying ? "animate-bar-1" : "h-1"
-                          }`}
-                        />
-                        <span
-                          className={`w-1 rounded-full bg-[#d47217] ${
-                            isCurrentAudioPlaying ? "animate-bar-2" : "h-2"
-                          }`}
-                        />
-                        <span
-                          className={`w-1 rounded-full bg-[#d47217] ${
-                            isCurrentAudioPlaying ? "animate-bar-3" : "h-1.5"
-                          }`}
-                        />
-                        <span
-                          className={`w-1 rounded-full bg-[#d47217] ${
-                            isCurrentAudioPlaying ? "animate-bar-4" : "h-1"
-                          }`}
-                        />
-                      </div>
-                    </button>
-                  </>
-                )}
-
                 {onOpenQuickView && (
                   <button
                     onClick={() => onOpenQuickView(activeProduct)}
@@ -235,25 +182,6 @@ export const Hero: React.FC<HeroProps> = ({
                       : "object-cover group-hover:scale-105"
                   }`}
                 />
-
-                {activeProduct.hasAudioPreview !== false && (
-                  <>
-                    {/* Sound Demo Tag Overlay */}
-                    <div className="absolute bottom-4 left-4 right-4 p-3 rounded-xl bg-[#121212]/90 backdrop-blur-md border border-[#d47217]/15 flex items-center justify-between text-xs">
-                      <div>
-                        <span className="text-[10px] text-[#e3deda] uppercase font-bold block">
-                          Perfil acústico
-                        </span>
-                        <span className="text-[#FFFFFF] font-medium truncate block max-w-[200px]">
-                          {activeProduct.soundDemo.notesDescription}
-                        </span>
-                      </div>
-                      <span className="px-2 py-1 rounded bg-[#d47217]/20 text-[#d47217] font-mono font-bold text-[11px] border border-[#d47217]/30">
-                        {activeProduct.soundDemo.duration.toLocaleString("es-ES")} s de audio de alta calidad
-                      </span>
-                    </div>
-                  </>
-                )}
               </div>
 
               {/* Carousel Controls */}

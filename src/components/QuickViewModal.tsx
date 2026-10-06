@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   X,
-  Volume2,
   Heart,
   ShoppingCart,
   Star,
@@ -14,7 +13,7 @@ import {
   Crown
 } from "lucide-react";
 import { Product } from "@/data/products";
-import { useCartStore, useWishlistStore, usePlayerStore } from "@/store/useStore";
+import { useCartStore, useWishlistStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 import { productWithVariant } from "@/components/VariantPicker";
@@ -40,10 +39,8 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
 
   const { addItem } = useCartStore();
   const { toggleWishlist, isInWishlist } = useWishlistStore();
-  const { currentProduct, isPlaying, toggleSample } = usePlayerStore();
 
   const inWishlist = isInWishlist(product.id);
-  const isAudioPlaying = isPlaying && currentProduct?.id === product.id;
   const isOutOfStock = product.stock <= 0;
   const tieneVariantes = (product.variants ?? []).length > 0;
 
@@ -89,21 +86,6 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
                   sizes="(max-width: 768px) 100vw, 400px"
                   className={product.imageFit === "contain" ? "object-contain" : "object-cover"}
                 />
-
-                {/* Audio Playing Pill Overlay */}
-                {product.hasAudioPreview !== false && isAudioPlaying && (
-                  <div className="absolute bottom-3 left-3 right-3 p-2.5 rounded-xl bg-[#121212]/90 backdrop-blur-md border border-[#d47217]/40 flex items-center justify-between text-xs text-[#d47217]">
-                    <span className="flex items-center gap-1.5 font-bold">
-                      <Volume2 className="w-4 h-4 animate-bounce text-[#d47217]" />
-                      Reproduciendo muestra de audio...
-                    </span>
-                    <div className="flex items-end gap-1 h-3">
-                      <span className="w-1 bg-[#d47217] rounded animate-bar-1" />
-                      <span className="w-1 bg-[#d47217] rounded animate-bar-2" />
-                      <span className="w-1 bg-[#d47217] rounded animate-bar-3" />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Thumbnails Row */}
@@ -192,34 +174,6 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
               <p className="text-xs sm:text-sm text-[#e3deda] leading-relaxed">
                 {product.description}
               </p>
-
-              {product.hasAudioPreview !== false && (
-                <>
-                  {/* Built-in Tone Auditioning Bar */}
-                  <div className="p-3.5 rounded-2xl bg-[#27272A] border border-[#52525B] flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold uppercase text-[#e3deda] tracking-wider">
-                        Vista previa del perfil de sonido
-                      </span>
-                      <p className="text-xs text-[#FFFFFF] font-medium">
-                        {product.soundDemo.notesDescription}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => toggleSample(product)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 cursor-pointer ${
-                        isAudioPlaying
-                          ? "bg-[#d47217] text-white border-[#d47217]"
-                          : "bg-[#27272A] hover:bg-[#3F3F46] text-[#FFFFFF] border-[#52525B]"
-                      }`}
-                    >
-                      <Volume2 className="w-4 h-4" />
-                      <span>{isAudioPlaying ? "Detener tono" : "Reproducir tono"}</span>
-                    </button>
-                  </div>
-                </>
-              )}
 
               {/* Technical Specifications Table */}
               <div className="space-y-2">

@@ -1316,7 +1316,6 @@ export const AdminDashboard: React.FC<{ userEmail: string }> = ({
                     ["isPublished", "Publicado"],
                     ["isFeatured", "Destacado"],
                     ["isNew", "Novedad"],
-                    ["hasAudioPreview", "Vista previa de audio"],
                   ].map(([key, label]) => (
                     <label key={key} className="flex items-center gap-2 text-xs text-[#e3deda]">
                       <input type="checkbox" checked={form[key as keyof ProductFormState] as boolean} onChange={(e) => updateForm(key as keyof ProductFormState, e.target.checked as never)} className="h-4 w-4 accent-[#d47217]" />

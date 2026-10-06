@@ -9,7 +9,6 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { WishlistDrawer } from "@/components/WishlistDrawer";
 import { QuickViewModal } from "@/components/QuickViewModal";
 import { CheckoutModal } from "@/components/CheckoutModal";
-import { AudioFloatingPlayer } from "@/components/AudioFloatingPlayer";
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -211,7 +210,6 @@ export default function Home() {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
       />
-      <AudioFloatingPlayer />
       <WhatsAppButton />
       </div>
     </BcvRateProvider>

@@ -88,31 +88,7 @@ body {
   box-shadow: 0 0 28px -4px rgba(212, 114, 23, 0.45);
 }
 
-/* Audio visualizer animations */
-@keyframes barPulseWarm {
-  0%, 100% {
-    height: 4px;
-  }
-  50% {
-    height: 24px;
-  }
-}
 
-.animate-bar-1 {
-  animation: barPulseWarm 0.8s ease-in-out infinite alternate;
-}
-.animate-bar-2 {
-  animation: barPulseWarm 0.6s ease-in-out infinite 0.15s alternate;
-}
-.animate-bar-3 {
-  animation: barPulseWarm 0.9s ease-in-out infinite 0.3s alternate;
-}
-.animate-bar-4 {
-  animation: barPulseWarm 0.5s ease-in-out infinite 0.1s alternate;
-}
-.animate-bar-5 {
-  animation: barPulseWarm 0.7s ease-in-out infinite 0.25s alternate;
-}
 
 /* Custom Warm Scrollbars */
 ::-webkit-scrollbar {

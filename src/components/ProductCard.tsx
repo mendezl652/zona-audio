@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Volume2,
   Heart,
   Eye,
   ShoppingCart,
@@ -12,7 +11,7 @@ import {
   Check
 } from "lucide-react";
 import { Product } from "@/data/products";
-import { useCartStore, useWishlistStore, usePlayerStore } from "@/store/useStore";
+import { useCartStore, useWishlistStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 import { productPath } from "@/lib/productSlug";
@@ -33,9 +32,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [justAdded, setJustAdded] = useState(false);
   const { addItem } = useCartStore();
   const { toggleWishlist, isInWishlist } = useWishlistStore();
-  const { currentProduct, isPlaying, toggleSample } = usePlayerStore();
 
-  const isAudioPlaying = isPlaying && currentProduct?.id === product.id;
   const inWishlist = isInWishlist(product.id);
   const isOutOfStock = product.stock <= 0;
   const tieneVariantes = (product.variants ?? []).length > 0;
@@ -51,11 +48,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleWishlist(product);
-  };
-
-  const handleAudioToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleSample(product);
   };
 
   if (viewMode === "list") {
@@ -149,21 +141,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {product.hasAudioPreview !== false && (
-              <button
-                onClick={handleAudioToggle}
-                title={isAudioPlaying ? "Detener vista previa del audio" : "Escuchar vista previa del audio"}
-                aria-label={isAudioPlaying ? "Detener vista previa del audio" : "Escuchar vista previa del audio"}
-                className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
-                  isAudioPlaying
-                    ? "bg-[#d47217]/25 text-[#d47217] border-[#d47217]"
-                    : "bg-[#27272A] text-[#e3deda] border-[#52525B] hover:text-white"
-                }`}
-              >
-                <Volume2 className={`w-4 h-4 ${isAudioPlaying ? "animate-pulse text-[#d47217]" : ""}`} />
-              </button>
-            )}
-
             <button
               onClick={handleWishlistToggle}
               aria-label={inWishlist ? "Quitar de la lista de deseos" : "Guardar en la lista de deseos"}
@@ -282,44 +259,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <span>Vista rápida</span>
             </button>
           </div>
-        )}
-
-        {product.hasAudioPreview !== false && (
-          <>
-            {/* Audio Preview Strip on bottom of image */}
-            <div className="absolute bottom-1.5 left-1.5 right-1.5 sm:bottom-2 sm:left-2 sm:right-2 flex items-center justify-between p-1 sm:p-1.5 rounded-lg bg-[#121212]/85 backdrop-blur-md border border-[#d47217]/15">
-              <button
-                onClick={handleAudioToggle}
-                className={`flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded transition-colors cursor-pointer ${
-                  isAudioPlaying
-                    ? "bg-[#d47217] text-white"
-                    : "text-[#d47217] hover:text-[#FFFFFF]"
-                }`}
-              >
-                <Volume2 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isAudioPlaying ? "animate-pulse" : ""}`} />
-                <span>{isAudioPlaying ? "Reproduciendo" : "Escuchar muestra"}</span>
-              </button>
-
-              {/* Mini Waveform Bars in Warm Accents */}
-              <div className="hidden sm:flex items-end gap-1 h-3 px-1">
-                <span
-                  className={`w-0.5 rounded-full bg-[#d47217] ${
-                    isAudioPlaying ? "animate-bar-1" : "h-1"
-                  }`}
-                />
-                <span
-                  className={`w-0.5 rounded-full bg-[#d47217] ${
-                    isAudioPlaying ? "animate-bar-2" : "h-1.5"
-                  }`}
-                />
-                <span
-                  className={`w-0.5 rounded-full bg-[#d47217] ${
-                    isAudioPlaying ? "animate-bar-3" : "h-1"
-                  }`}
-                />
-              </div>
-            </div>
-          </>
         )}
       </div>
 

@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { products, Product } from "@/data/products";
-import { audioEngine } from "@/utils/audioEngine";
 
 export interface CartItem {
   product: Product;
@@ -219,65 +218,6 @@ export const useWishlistStore = create<WishlistStore>()(
     }
   )
 );
-
-// Audio Player Store
-interface PlayerStore {
-  currentProduct: Product | null;
-  isPlaying: boolean;
-  progress: number;
-  playSample: (product: Product) => void;
-  stopSample: () => void;
-  toggleSample: (product: Product) => void;
-}
-
-let progressInterval: NodeJS.Timeout | null = null;
-
-export const usePlayerStore = create<PlayerStore>((set, get) => ({
-  currentProduct: null,
-  isPlaying: false,
-  progress: 0,
-  playSample: (product: Product) => {
-    if (progressInterval) clearInterval(progressInterval);
-
-    set({ currentProduct: product, isPlaying: true, progress: 0 });
-
-    if (typeof window !== "undefined" && audioEngine) {
-      audioEngine.playSample(product.soundDemo.type, product.soundDemo.duration, () => {
-        set({ isPlaying: false, progress: 100 });
-        if (progressInterval) clearInterval(progressInterval);
-      });
-    }
-
-    const durationMs = (product.soundDemo.duration || 5) * 1000;
-    const intervalMs = 100;
-    let elapsed = 0;
-
-    progressInterval = setInterval(() => {
-      elapsed += intervalMs;
-      const currentPct = Math.min(100, (elapsed / durationMs) * 100);
-      set({ progress: currentPct });
-      if (elapsed >= durationMs) {
-        if (progressInterval) clearInterval(progressInterval);
-        set({ isPlaying: false });
-      }
-    }, intervalMs);
-  },
-  stopSample: () => {
-    if (progressInterval) clearInterval(progressInterval);
-    if (typeof window !== "undefined" && audioEngine) {
-      audioEngine.stop();
-    }
-    set({ isPlaying: false, progress: 0 });
-  },
-  toggleSample: (product: Product) => {
-    const { currentProduct, isPlaying, playSample, stopSample } = get();
-    if (isPlaying && currentProduct?.id === product.id) {
-      stopSample();
-    } else {
-      playSample(product);
-    }
-  },
-}));
 
 // Theme Store (Dark mode priority, toggleable to light mode)
 interface ThemeStore {
