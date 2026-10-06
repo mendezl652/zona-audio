@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
+import { MetaPixelProvider } from "@/components/MetaPixelProvider";
+import { META_PIXEL_ID } from "@/lib/metaPixel";
 
 const SITIO = "https://zonaaudio.com";
 
@@ -78,8 +81,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="dark h-full antialiased">
+      <head>
+        {/* El pixel de Meta carga en el head para no perder la visita. */}
+        {META_PIXEL_ID && (
+          <noscript>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              height="1"
+              width="1"
+              style={{ display: "none" }}
+              alt=""
+              src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            />
+          </noscript>
+        )}
+      </head>
       <body className="min-h-full flex flex-col bg-[#121212] text-[#FFFFFF]">
-        {children}
+        <Suspense fallback={null}>
+          <MetaPixelProvider>{children}</MetaPixelProvider>
+        </Suspense>
       </body>
     </html>
   );

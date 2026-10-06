@@ -6,6 +6,7 @@ import type { Product, ProductVariant } from "@/data/products";
 import { useCartStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
+import { medirAgregadoAlCarrito } from "@/components/MetaPixelEvents";
 
 /** Devuelve una copia del producto con los datos de la variante elegida. */
 export function productWithVariant(product: Product, variant: ProductVariant): Product {
@@ -53,6 +54,7 @@ export function VariantPicker({ product }: Props) {
       ? productWithVariant(product, seleccionada)
       : product;
     addItem(item, 1);
+    medirAgregadoAlCarrito(item, 1);
     setAgregado(true);
     window.setTimeout(() => setAgregado(false), 1800);
   };

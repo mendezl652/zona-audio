@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import { buildWhatsAppUrl } from "@/lib/contact";
+import { medirConsultaWhatsApp } from "@/components/MetaPixelEvents";
 
 type Props = {
   /** Mensaje que se abre en WhatsApp. Por defecto, el saludo de la tienda. */
@@ -12,6 +15,11 @@ type Props = {
  */
 export const WhatsAppButton: React.FC<Props> = ({ message }) => {
   const whatsappUrl = buildWhatsAppUrl(message);
+
+  // Una consulta por WhatsApp tambien cuenta como conversion para Meta.
+  // Se registra al tocar el boton, no al cargar la pagina.
+  const registrarConsulta = () => medirConsultaWhatsApp();
+
   const etiqueta = message
     ? `Consultar por WhatsApp: ${message}`
     : "¡Bienvenido a Zona Audio! ¿En qué podemos ayudarte?";
@@ -25,6 +33,7 @@ export const WhatsAppButton: React.FC<Props> = ({ message }) => {
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={registrarConsulta}
           aria-label="Abrir chat de WhatsApp con Zona Audio"
           title="Chatear por WhatsApp"
           data-welcome-message={etiqueta}

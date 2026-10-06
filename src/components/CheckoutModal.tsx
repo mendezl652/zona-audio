@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import confetti from "canvas-confetti";
 import {
@@ -27,6 +27,10 @@ import {
   type ProductCurrency,
 } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
+import {
+  medirInicioCheckout,
+  medirPedidoConfirmado,
+} from "@/components/MetaPixelEvents";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -175,6 +179,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [whatsappUrl, setWhatsappUrl] = useState("");
   const [submittedOrder, setSubmittedOrder] = useState<SubmittedOrder | null>(null);
   const orderSequence = useRef(100000);
+  // Permite medir el inicio del checkout una sola vez por apertura.
+  const checkoutMedido = useRef(false);
   const { rate, isLoading: rateLoading, error: rateError } = useBcvRate();
 
   const {
@@ -186,6 +192,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     couponCode,
     clearCart,
   } = useCartStore();
+
+  // El hook va antes del return temprano para cumplir las reglas de React.
+  useEffect(() => {
+    if (!isOpen || checkoutMedido.current || items.length === 0) return;
+    checkoutMedido.current = true;
+    medirInicioCheckout(Math.max(0, getTotal()));
+  }, [isOpen, items.length, getTotal]);
 
   if (!isOpen) return null;
 
@@ -212,6 +225,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setProofError("");
     setWhatsappUrl("");
     setSubmittedOrder(null);
+    // Permite medir de nuevo el checkout en la proxima apertura.
+    checkoutMedido.current = false;
   };
 
   const handleClose = () => {
@@ -285,6 +300,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     orderSequence.current += 1;
     const generatedOrderNumber = `AURA-${orderSequence.current}`;
     setOrderNumber(generatedOrderNumber);
+
+    // Compra: el evento que mas le importa a Meta para medir conversiones.
+    medirPedidoConfirmado({
+      total: Math.max(0, baseTotal - (payment.mode === "divisas" ? subtotal * 0.2 : 0)),
+      nombre: customer.fullName,
+      telefono: customer.phone,
+      cedula: customer.idNumber,
+      productos: items.map((item) => ({
+        id: item.product.id,
+        name: item.product.name,
+        price: Number(item.product.price ?? 0),
+        cantidad: item.quantity,
+      })),
+    });
 
     const message = buildOrderMessage(reference);
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;

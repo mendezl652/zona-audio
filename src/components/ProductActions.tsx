@@ -7,6 +7,7 @@ import type { Product } from "@/data/products";
 import { useCartStore, useWishlistStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
+import { medirAgregadoAlCarrito } from "@/components/MetaPixelEvents";
 
 /** Precio, conversion en bs y boton de compra para la ficha de producto. */
 export function ProductActions({ product }: { product: Product }) {
@@ -21,6 +22,7 @@ export function ProductActions({ product }: { product: Product }) {
 
   const agregar = () => {
     addItem(product, 1);
+    medirAgregadoAlCarrito(product, 1);
     setAgregado(true);
     window.setTimeout(() => setAgregado(false), 1800);
     openCart();

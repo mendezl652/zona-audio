@@ -5,6 +5,7 @@ import { Check, ShoppingCart } from "lucide-react";
 import type { Product } from "@/data/products";
 import { useCartStore } from "@/store/useStore";
 import { productWithVariant } from "@/components/VariantPicker";
+import { medirAgregadoAlCarrito } from "@/components/MetaPixelEvents";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 
@@ -31,7 +32,9 @@ export function CardVariantPicker({ product }: Props) {
 
   const agregar = () => {
     if (!seleccionada) return;
-    addItem(productWithVariant(product, seleccionada), 1);
+    const conVariante = productWithVariant(product, seleccionada);
+    addItem(conVariante, 1);
+    medirAgregadoAlCarrito(conVariante, 1);
     setAgregado(true);
     window.setTimeout(() => setAgregado(false), 1600);
   };

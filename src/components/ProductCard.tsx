@@ -16,6 +16,7 @@ import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 import { productPath } from "@/lib/productSlug";
 import { CardVariantPicker } from "@/components/CardVariantPicker";
+import { medirAgregadoAlCarrito } from "@/components/MetaPixelEvents";
 
 interface ProductCardProps {
   product: Product;
@@ -41,6 +42,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation();
     if (isOutOfStock) return;
     addItem(product, 1);
+    medirAgregadoAlCarrito(product, 1);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1500);
   };

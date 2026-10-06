@@ -17,6 +17,7 @@ import { useCartStore, useWishlistStore } from "@/store/useStore";
 import { formatProductPrice } from "@/utils/formatPrice";
 import { formatVes, useBcvRate } from "@/components/BcvRateProvider";
 import { productWithVariant } from "@/components/VariantPicker";
+import { medirAgregadoAlCarrito } from "@/components/MetaPixelEvents";
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -47,6 +48,7 @@ const QuickViewContent: React.FC<QuickViewContentProps> = ({
   const handleAddToCart = () => {
     if (isOutOfStock) return;
     addItem(product, quantity);
+    medirAgregadoAlCarrito(product, quantity);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1600);
   };
@@ -285,7 +287,9 @@ function VariantPickerInline({ product }: { product: Product }) {
 
   const agregar = () => {
     if (!seleccionada) return;
-    addItem(productWithVariant(product, seleccionada), 1);
+    const conVariante = productWithVariant(product, seleccionada);
+    addItem(conVariante, 1);
+    medirAgregadoAlCarrito(conVariante, 1);
     setAgregado(true);
     window.setTimeout(() => setAgregado(false), 1800);
   };

@@ -10,6 +10,7 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { VariantPicker } from "@/components/VariantPicker";
 import { ContactBlock } from "@/components/ContactBlock";
 import { DiscountBanner } from "@/components/DiscountBanner";
+import { MedirFichaProducto } from "@/components/MedirFichaProducto";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 const SITIO = "https://zonaaudio.com";
@@ -217,6 +218,7 @@ export default async function PaginaProducto({ params }: Params) {
         </div>
       </div>
 
+      <MedirFichaProducto producto={product} />
       <WhatsAppButton message={mensajeWhatsApp(product.name, product.price, product.stock)} />
     </BcvRateProvider>
   );
