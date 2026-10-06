@@ -9,6 +9,7 @@ import { ProductActions } from "@/components/ProductActions";
 import { ProductGallery } from "@/components/ProductGallery";
 import { VariantPicker } from "@/components/VariantPicker";
 import { ContactBlock } from "@/components/ContactBlock";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 const SITIO = "https://zonaaudio.com";
 
@@ -212,8 +213,30 @@ export default async function PaginaProducto({ params }: Params) {
           <OtrosProductos actual={product.id} />
         </div>
       </div>
+
+      <WhatsAppButton message={mensajeWhatsApp(product.name, product.price, product.stock)} />
     </BcvRateProvider>
   );
+}
+
+/**
+ * Mensaje que llega ya escrito en WhatsApp cuando el cliente toca el boton
+ * desde la ficha de un producto: ya sabe cual es y a cuanto precio.
+ */
+function mensajeWhatsApp(nombre: string, precio?: number, stock?: number) {
+  const monto =
+    typeof precio === "number"
+      ? `$${precio.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+      : null;
+
+  const partes = [`¡Hola! Vi "${nombre}"`];
+  if (monto) partes.push(monto);
+  partes.push(
+    (stock ?? 0) > 0
+      ? "en la web de Zona Audio. ¿Está disponible?"
+      : "en la web de Zona Audio y aparece agotado. ¿Cuándo llega?"
+  );
+  return partes.join(" ");
 }
 
 async function OtrosProductos({ actual }: { actual: string }) {
