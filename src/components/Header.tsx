@@ -8,7 +8,6 @@ import {
   Heart,
   Menu,
   X,
-  ChevronDown,
   Sparkles
 } from "lucide-react";
 import { useCartStore, useWishlistStore } from "@/store/useStore";
@@ -116,11 +115,11 @@ export const Header: React.FC<HeaderProps> = ({
                 alt="Zona Audio"
                 width={757}
                 height={187}
-                className="h-8 sm:h-9 w-auto max-w-[105px] sm:max-w-[155px] object-contain"
+                className="h-9 w-auto max-w-[115px] object-contain sm:h-10 sm:max-w-[165px]"
               />
               {/* El logo ya incluye el nombre; en movil no lo repetimos. */}
-              <div className="hidden sm:flex flex-col">
-                <span className="text-sm font-black uppercase tracking-[0.18em] text-[#FFFFFF] group-hover:text-[#d47217] transition-colors">
+              <div className="hidden flex-col sm:flex">
+                <span className="text-sm font-black uppercase tracking-[0.18em] text-[#FFFFFF] transition-colors group-hover:text-[#d47217]">
                   Zona Audio
                 </span>
                 <span className="text-[10px] text-[#e3deda] font-medium tracking-wide whitespace-nowrap">
@@ -262,11 +261,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={openWishlist}
               aria-label="Ver equipos guardados"
-              className="relative p-2.5 rounded-full bg-[#27272A] hover:bg-[#27272A] border border-[#52525B] text-[#e3deda] hover:text-[#FFFFFF] transition-all cursor-pointer"
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#27272A] border border-[#52525B] text-[#e3deda] transition-colors hover:text-[#FFFFFF] active:scale-95 cursor-pointer sm:h-12 sm:w-12"
             >
-              <Heart className="w-4 h-4 hover:text-[#d47217] transition-colors" />
+              <Heart className="h-5 w-5 hover:text-[#d47217] transition-colors" />
               {hasMounted && wishlistItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#d47217] text-white text-[11px] font-bold flex items-center justify-center shadow-lg">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#d47217] text-[11px] font-bold text-white shadow-lg">
                   {wishlistItems.length.toLocaleString("es-ES")}
                 </span>
               )}
@@ -276,12 +275,12 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={openCart}
               aria-label="Abrir carrito de compras"
-              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#d47217] via-[#d47217] to-[#d47217] hover:opacity-95 text-white font-black text-sm shadow-lg shadow-[#d47217]/25 hover:shadow-[#d47217]/40 transition-all cursor-pointer active:scale-95"
+              className="flex h-11 shrink-0 items-center gap-2.5 rounded-full bg-gradient-to-r from-[#d47217] via-[#d47217] to-[#d47217] px-4 text-sm font-black text-white shadow-lg shadow-[#d47217]/25 transition-all hover:shadow-[#d47217]/40 hover:opacity-95 active:scale-95 cursor-pointer sm:h-12 sm:px-5"
             >
               <div className="relative">
-                <ShoppingCart className="w-4 h-4 text-white" />
+                <ShoppingCart className="h-5 w-5 text-white" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-[#121212] text-[#d47217] text-[10px] font-black flex items-center justify-center border border-[#d47217]">
+                  <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full border border-[#d47217] bg-[#121212] text-[10px] font-black text-[#d47217]">
                     {cartCount.toLocaleString("es-ES")}
                   </span>
                 )}
@@ -295,34 +294,33 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2.5 rounded-xl bg-[#27272A] md:hidden border border-[#52525B] text-[#e3deda] hover:text-white cursor-pointer"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#52525B] bg-[#27272A] text-[#e3deda] transition-colors hover:text-white active:scale-95 md:hidden cursor-pointer"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
         {/* Desktop Category Bar */}
-        <div className="hidden md:flex items-center justify-between max-w-7xl mx-auto pt-3 border-t border-[#d47217]/10 text-sm">
-          <div className="flex items-center gap-6">
+        <div className="hidden md:block max-w-7xl mx-auto pt-2.5">
+          <nav aria-label="Categorías" className="flex flex-wrap items-center gap-2">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
                   if (onSelectCategory) onSelectCategory(cat);
                 }}
-                className="text-[#e3deda] hover:text-[#d47217] font-medium text-xs lg:text-sm tracking-wide transition-colors py-1 cursor-pointer flex items-center gap-1 group"
+                className="flex items-center gap-1.5 rounded-full border border-[#52525B] bg-[#27272A]/60 px-4 py-2 text-[13px] font-semibold tracking-wide text-[#e3deda] transition-colors hover:border-[#d47217]/60 hover:bg-[#d47217]/15 hover:text-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d47217]/50 cursor-pointer lg:text-sm"
               >
                 <span>{cat}</span>
                 {cat === "Todos" && (
-                  <span className="text-[10px] bg-[#d47217]/20 text-[#d47217] px-1.5 py-0.2 rounded ml-0.5 font-bold">
+                  <span className="rounded-full bg-[#d47217]/25 px-1.5 py-0.5 text-[10px] font-bold text-[#d47217]">
                     {products.length.toLocaleString("es-ES")}
                   </span>
                 )}
               </button>
             ))}
-          </div>
-
+          </nav>
         </div>
       </div>
 
@@ -341,8 +339,8 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#e3deda]" />
           </div>
 
-          <div className="space-y-1">
-            <div className="text-xs uppercase font-bold text-[#e3deda] px-2 py-1">
+          <div className="space-y-2">
+            <div className="px-1 text-[11px] font-bold uppercase tracking-wider text-[#e3deda]">
               Comprar por categoría
             </div>
             {categories.map((cat) => (
@@ -352,10 +350,14 @@ export const Header: React.FC<HeaderProps> = ({
                   if (onSelectCategory) onSelectCategory(cat);
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm text-[#e3deda] hover:bg-[#27272A] hover:text-[#d47217] flex items-center justify-between"
+                className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#3F3F46] bg-[#27272A]/50 px-4 py-3.5 text-left text-[15px] font-semibold text-[#e3deda] transition-colors hover:border-[#d47217]/60 hover:bg-[#d47217]/15 hover:text-[#FFFFFF] active:scale-[0.99] cursor-pointer"
               >
                 <span>{cat}</span>
-                <ChevronDown className="w-3.5 h-3.5 -rotate-90 text-[#e3deda]" />
+                {cat === "Todos" && (
+                  <span className="rounded-full bg-[#d47217]/25 px-2 py-0.5 text-[11px] font-bold text-[#d47217]">
+                    {products.length.toLocaleString("es-ES")}
+                  </span>
+                )}
               </button>
             ))}
           </div>
