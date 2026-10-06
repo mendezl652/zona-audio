@@ -96,7 +96,7 @@ export function ProductActions({ product }: { product: Product }) {
       </div>
 
       <p className="text-xs text-[#e3deda]">
-        {formatProductPrice(product)} · Envíos a todo el país · 20% de descuento en
+        {formatProductPrice(product)} · Envío gratis · 20% de descuento en
         pagos en divisas
       </p>
     </div>

@@ -87,12 +87,6 @@ export const useCartStore = create<CartStore>()(
             success: true,
             message: "¡Se aplicó el descuento exclusivo de Zona Audio del 20 %!",
           };
-        } else if (cleanCode === "AURASHIP" || cleanCode === "FREESHIP") {
-          set({ couponCode: cleanCode, discountRate: 0.05 });
-          return {
-            success: true,
-            message: "¡Se activaron el envío exprés gratis y el cupón del 5 %!",
-          };
         }
         return {
           success: false,
@@ -112,25 +106,14 @@ export const useCartStore = create<CartStore>()(
         return subtotal * get().discountRate;
       },
       getShipping: () => {
-        const state = get();
-        const subtotal = state.getSubtotal();
-        if (subtotal === 0) return 0;
-        if (
-          state.items.some((item) => item.product.freeShipping) ||
-          subtotal >= 150 ||
-          state.couponCode === "AURASHIP" ||
-          state.couponCode === "FREESHIP"
-        ) {
-          return 0;
-        }
-        return 14.99;
+        // Zona Audio no cobra envio: la entrega se coordina por WhatsApp.
+        return 0;
       },
       getTotal: () => {
         const state = get();
         const subtotal = state.getSubtotal();
         const discount = state.getDiscount();
-        const shipping = state.getShipping();
-        return Math.max(0, subtotal - discount + shipping);
+        return Math.max(0, subtotal - discount);
       },
       getItemCount: () => {
         return get().items.reduce((sum, item) => sum + item.quantity, 0);

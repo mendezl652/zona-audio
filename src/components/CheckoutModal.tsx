@@ -187,7 +187,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     items,
     getSubtotal,
     getDiscount,
-    getShipping,
     getTotal,
     couponCode,
     clearCart,
@@ -204,7 +203,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const subtotal = getSubtotal();
   const discount = getDiscount();
-  const shipping = getShipping();
   const baseTotal = getTotal();
   const paymentDiscount = payment.mode === "divisas" ? subtotal * 0.2 : 0;
   const total = Math.max(0, baseTotal - paymentDiscount);
@@ -628,13 +626,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-bold font-mono text-[#d47217] shrink-0">
-                  {shipping === 0
-                    ? ""
-                    : formatMoney(shipping, cartCurrency, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-[#7EE2A1]">
+                  Gratis
                 </span>
               </div>
 
@@ -791,11 +784,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
                 <div className="flex justify-between text-[#e3deda]">
                   <span>Envío</span>
-                  <span className="font-mono text-[#FFFFFF]">
-                    {shipping === 0
-                      ? ""
-                      : formatMoney(shipping, cartCurrency, { minimumFractionDigits: 2 })}
-                  </span>
+                  <span className="font-semibold text-[#7EE2A1]">Gratis</span>
                 </div>
                 {paymentDiscount > 0 && (
                   <div className="flex justify-between text-[#7EE2A1] font-semibold">
