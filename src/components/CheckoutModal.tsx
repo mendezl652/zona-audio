@@ -12,6 +12,7 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  CreditCard,
   Crown,
   FileText,
   Lock,
@@ -31,6 +32,11 @@ import {
   medirInicioCheckout,
   medirPedidoConfirmado,
 } from "@/components/MetaPixelEvents";
+import {
+  abrirCheckoutCashea,
+  armarPayloadCashea,
+  casheaDisponible,
+} from "@/lib/cashea";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -43,7 +49,8 @@ type PaymentMethod =
   | "zelle"
   | "binance"
   | "pago_movil"
-  | "transferencia";
+  | "transferencia"
+  | "cashea";
 
 type CustomerDetails = {
   fullName: string;
@@ -122,6 +129,13 @@ const PAYMENT_METHODS = [
     description: "Transferencia en bolívares",
     icon: Building2,
   },
+  {
+    id: "cashea" as PaymentMethod,
+    mode: "divisas" as PaymentMode,
+    label: "Cashea",
+    description: "Tarjeta, transferencia o cuotas",
+    icon: CreditCard,
+  },
 ];
 
 function getPaymentInstructions(
@@ -155,6 +169,12 @@ function getPaymentInstructions(
         "Usuario: User-00a06",
         "Correo: Mendezl652@gmail.com",
       ];
+    case "cashea":
+      return [
+        "Pulsa el botón de Cashea para abrir su pantalla de pago",
+        "Puedes pagar con tarjeta, transferencia o en cuotas",
+        "Al finalizar vuelves a Zona Audio y te confirmamos por WhatsApp",
+      ];
     case "efectivo":
     default:
       return [
@@ -178,6 +198,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [proofError, setProofError] = useState("");
   const [whatsappUrl, setWhatsappUrl] = useState("");
   const [submittedOrder, setSubmittedOrder] = useState<SubmittedOrder | null>(null);
+  const [casheaError, setCasheaError] = useState("");
   const orderSequence = useRef(100000);
   // Permite medir el inicio del checkout una sola vez por apertura.
   const checkoutMedido = useRef(false);
@@ -223,6 +244,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setProofError("");
     setWhatsappUrl("");
     setSubmittedOrder(null);
+    setCasheaError("");
     // Permite medir de nuevo el checkout en la proxima apertura.
     checkoutMedido.current = false;
   };
@@ -280,9 +302,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     ].join("\n");
   };
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     const reference = payment.reference.trim();
-    if (!reference && !payment.proofName) {
+    // Cashea no necesita referencia previa: el comprobante lo genera Cashea.
+    const esCashea = payment.method === "cashea";
+
+    if (!esCashea && !reference && !payment.proofName) {
       setProofError(
         "Ingresa una referencia o adjunta una foto del comprobante para continuar."
       );
@@ -291,6 +316,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (items.length === 0) return;
     if (payment.mode === "bolivares" && rate <= 0) {
       setProofError("No se pudo obtener la tasa BCV. Actualiza la tasa antes de pagar en bolívares.");
+      return;
+    }
+    // Cashea necesita la cedula para identificar al cliente.
+    if (esCashea && !customer.idNumber.trim()) {
+      setProofError("Ingresa tu cédula o RIF para continuar con el pago.");
       return;
     }
 
@@ -349,6 +379,36 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     clearCart();
     setStep(3);
     setIsProcessing(false);
+
+    // Cashea redirige a su propia pantalla: despues de mostrar la
+    // confirmacion, el cliente continua el pago en su plataforma.
+    if (esCashea) {
+      try {
+        await abrirCheckoutCashea(
+          armarPayloadCashea({
+            productos: items.map((item) => ({
+              id: item.product.id,
+              name: item.product.name,
+              price: Number(item.product.price ?? 0),
+              quantity: item.quantity,
+              images: item.product.images,
+              description: item.product.description,
+              brand: item.product.brand,
+            })),
+            identificacion: customer.idNumber,
+            invoiceId: generatedOrderNumber,
+            externalClientId: generatedOrderNumber,
+            deliveryMethod: "IN_STORE",
+          })
+        );
+      } catch (error) {
+        setCasheaError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo abrir el pago con Cashea."
+        );
+      }
+    }
   };
 
   const copyOrderToClipboard = async () => {
@@ -585,7 +645,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   aria-label="Método de pago"
                   className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                 >
-                  {PAYMENT_METHODS.filter((option) => option.mode === payment.mode).map((option) => {
+                  {PAYMENT_METHODS.filter((option) => option.mode === payment.mode)
+                    // Cashea solo aparece cuando hay clave de integracion.
+                    .filter((option) => option.id !== "cashea" || casheaDisponible())
+                    .map((option) => {
                     const Icon = option.icon;
                     const selected = payment.method === option.id;
                     return (
@@ -808,6 +871,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
               </div>
 
+              {casheaError && (
+                <div className="flex items-start gap-2 rounded-xl border border-[#e3deda]/25 bg-[#e3deda]/10 px-3 py-2.5 text-xs text-[#e3deda]">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>{casheaError}</span>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -826,7 +896,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   {isProcessing ? (
                     <>
                       <span className="w-4 h-4 border-2 border-[#121212] border-t-transparent rounded-full animate-spin" />
-                      <span>Preparando pedido...</span>
+                      <span>
+                        {payment.method === "cashea"
+                          ? "Abriendo Cashea..."
+                          : "Preparando pedido..."}
+                      </span>
+                    </>
+                  ) : payment.method === "cashea" ? (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      <span>Pagar con Cashea</span>
                     </>
                   ) : (
                     <>
